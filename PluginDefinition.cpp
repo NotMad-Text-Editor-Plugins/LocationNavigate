@@ -44,10 +44,10 @@ int IconID[nbFunc];
 //
 NppData nppData;
 HANDLE				g_hModule;
-toolbarIcons		g_TBPrevious;
-toolbarIcons		g_TBNext;
-toolbarIcons		g_TBPreviousChg;
-toolbarIcons		g_TBNextChg;
+toolbarIcons		g_TBPrevious{0,0,0x666,0,IDI_ICON_PREV,IDI_ICON_PREV_ACT,IDI_ICON_PREV_OFF,IDB_BITMAP1};
+toolbarIcons		g_TBNext{0,0,0x666,0,IDI_ICON_NEXT,IDI_ICON_NEXT_ACT,IDI_ICON_NEXT_OFF,IDB_BITMAP2};
+toolbarIcons		g_TBPreviousChg{0,0,0x666,0,IDI_ICON_PREV1,IDI_ICON_PREV1_ACT,IDI_ICON_PREV1_OFF,IDB_BITMAP3};
+toolbarIcons		g_TBNextChg{0,0,0x666,0,IDI_ICON_NEXT1,IDI_ICON_NEXT1_ACT,IDI_ICON_NEXT1_OFF,IDB_BITMAP4};
 
 TCHAR iniFilePath[MAX_PATH];
 //bool SaveRecording = false;

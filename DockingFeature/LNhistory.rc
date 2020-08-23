@@ -155,6 +155,13 @@ IDI_ICON_NEXT1 ICON DISCARDABLE "next1.ico"
 IDI_ICON_PREV1 ICON DISCARDABLE "prev1.ico"
 IDI_ICON_PREV1_ACT ICON DISCARDABLE "prev1_act.ico"
 IDI_ICON_PREV1_OFF ICON DISCARDABLE "prev1_off.ico"
+IDI_ICON_PREV_ACT ICON DISCARDABLE "prev_act.ico"
+IDI_ICON_PREV_OFF ICON DISCARDABLE "prev_off.ico"
+IDI_ICON_NEXT1_ACT ICON DISCARDABLE "next1_act.ico"
+IDI_ICON_NEXT1_OFF ICON DISCARDABLE "next1_off.ico"
+IDI_ICON_NEXT_ACT ICON DISCARDABLE "next_act.ico"
+IDI_ICON_NEXT_OFF ICON DISCARDABLE "next_off.ico"
+
 #endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 
