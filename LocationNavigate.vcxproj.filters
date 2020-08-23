@@ -32,40 +32,19 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DockingFeature\DockingDlgInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Listbox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DockingFeature\LNhistoryDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="menuCmdID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Notepad_plus_msgs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PluginDefinition.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PluginInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DockingFeature\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scintilla.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DockingFeature\SelfCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DockingFeature\StaticDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DockingFeature\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

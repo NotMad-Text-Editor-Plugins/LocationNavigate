@@ -22,8 +22,22 @@
 #include "PluginDefinition.h"
 #include "SelfCtrl.h"
 #include "resource.h"
+#include <deque>
+#include "menuCmdID.h"
 
 #define SELF_REFRESH WM_USER+9
+
+using namespace std;
+
+struct LocationInfo
+{
+	//long line;
+	//long col;
+	long position;// 文档中的位置
+	long bufferID;// 文档编号
+	TCHAR FilePath[MAX_PATH];
+	bool changed; // 是否修改过
+};
 
 enum MarkType{
 	// 需要和 MarkTypeArr 统一

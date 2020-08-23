@@ -577,6 +577,8 @@
 #define IDI_ICON_PREV                115
 #define IDI_ICON_NEXT1                116
 #define IDI_ICON_PREV1                117
+#define IDI_ICON_PREV1_ACT                118
+#define IDI_ICON_PREV1_OFF                119
 
 #define VK_F2                           0x71
 #define VK_F3                           0x72

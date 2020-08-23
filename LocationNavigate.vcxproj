@@ -273,7 +273,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Realeas|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>.\DockingFeature;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LocationNavigate_EXPORTS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN64=1;NDEBUG;_WINDOWS;_USRDLL;LocationNavigate_EXPORTS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
@@ -345,18 +345,11 @@
     <ClCompile Include="PluginDefinition.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DockingFeature\DockingDlgInterface.h" />
     <ClInclude Include="DockingFeature\LNhistoryDlg.h" />
     <ClInclude Include="DockingFeature\resource.h" />
     <ClInclude Include="DockingFeature\SelfCtrl.h" />
-    <ClInclude Include="DockingFeature\StaticDialog.h" />
-    <ClInclude Include="DockingFeature\Window.h" />
-    <ClInclude Include="Listbox.h" />
     <ClInclude Include="menuCmdID.h" />
-    <ClInclude Include="Notepad_plus_msgs.h" />
     <ClInclude Include="PluginDefinition.h" />
-    <ClInclude Include="PluginInterface.h" />
-    <ClInclude Include="Scintilla.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="DockingFeature\cnext16.bmp" />

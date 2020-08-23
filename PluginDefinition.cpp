@@ -407,7 +407,8 @@ void NavigateInCurr()
 {
 	InCurr = !InCurr;
 	// 刷新菜单
-	::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuInCurr]._cmdID, MF_BYCOMMAND | (InCurr?MF_CHECKED:MF_UNCHECKED));
+	::CheckMenuItem(::GetMenu(nppData._nppHandle),
+		funcItem[menuInCurr]._cmdID, MF_BYCOMMAND | (InCurr?MF_CHECKED:MF_UNCHECKED));
 	// 刷新配置界面
 	_LNhistory.refreshDlg();
 	if ( _LNhistory.isCreated() )
@@ -419,7 +420,8 @@ void MarkChange()
 {
 	NeedMark = !NeedMark;
 	// 刷新菜单
-	::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuNeedMark]._cmdID, MF_BYCOMMAND | (NeedMark?MF_CHECKED:MF_UNCHECKED));
+	::CheckMenuItem(::GetMenu(nppData._nppHandle), 
+		funcItem[menuNeedMark]._cmdID, MF_BYCOMMAND | (NeedMark?MF_CHECKED:MF_UNCHECKED));
 	// 刷新配置界面
 	if ( _LNhistory.isCreated() )
 	{
@@ -446,24 +448,34 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
 }
 void LocationNavigateHistoryDlg()
 {
-	_LNhistory.setParent(nppData._nppHandle);
-	tTbData	data = {0};
+	_LNhistory.setParent( nppData._nppHandle );
+	tTbData data = {0};
 
-	if (!_LNhistory.isCreated())
+	if ( !_LNhistory.isCreated() )
 	{
-		_LNhistory.create(&data);
-
+		_LNhistory.create( &data );
 		// define the default docking behaviour
+		data.uMask          = DWS_DF_CONT_RIGHT | DWS_ICONTAB;
 		data.pszModuleName = _LNhistory.getPluginFileName();
-
 		// the dlgDlg should be the index of funcItem where the current function pointer is
 		data.dlgID = menuOption;
-		data.uMask			= DWS_DF_CONT_RIGHT | DWS_ICONTAB;
-
-		data.hIconTab		= (HICON)::LoadImage((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDI_ICON1),IMAGE_ICON, 0, 0, LR_LOADMAP3DCOLORS | LR_LOADTRANSPARENT);
-		::SendMessage(nppData._nppHandle, NPPM_DMMREGASDCKDLG, 0, (LPARAM)&data);
+		data.hIconTab       = ( HICON )::LoadImage( _LNhistory.getHinst(),
+			MAKEINTRESOURCE( IDI_ICON1 ), IMAGE_ICON, 0, 0,
+			LR_LOADMAP3DCOLORS | LR_LOADTRANSPARENT );
+		::SendMessage( nppData._nppHandle, NPPM_DMMREGASDCKDLG, 0,
+			( LPARAM )&data );
 	}
-	//_LNhistory.display();
+
+	UINT state = ::GetMenuState( ::GetMenu( nppData._nppHandle ),
+		funcItem[menuOption]._cmdID, MF_BYCOMMAND );
+
+	if ( state & MF_CHECKED )
+		_LNhistory.display( false );
+	else
+		_LNhistory.display();
+
+	::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+		funcItem[menuOption]._cmdID, !( state & MF_CHECKED ) );
 }
 
 void ShowAbout()

@@ -462,7 +462,10 @@ DWORD   WINAPI   ThreadFunc(   LPVOID   lpParam   )
 
 		//EnableTBButton( menuNext,  val);
 
+		//_LNhistory.setParent( nppData._nppHandle );
+
 		//_LNhistory.display(val);
+		//LocationNavigateHistoryDlg();
 		//
 		//
 		//HWND hReBar;
@@ -474,41 +477,46 @@ DWORD   WINAPI   ThreadFunc(   LPVOID   lpParam   )
 		//::SendMessage( hToolbar, TB_ENABLEBUTTON, ( WPARAM )funcItem[menuNext]._cmdID,  MAKELONG( val , 0 ) );
 
 
-
 		Sleep(100);
 	}
 	return   0;
 }
 void DoSavedColor()
 {
-	if ( ByBookMark==MarkBookmark )return;
+	// 需要修改当前全部的Mark颜色
+	if (NeedMark && !isOpenFile)
+	{
+		if ( ByBookMark==MarkBookmark )return;
 
-	for (int i=0;i< MarkHistory.size();i++)
-	{
-		if ( MarkHistory[i].BufferID == currTmpBufferID)
+		//::MessageBox(NULL, TEXT("DoSavedColor"), TEXT(""), MB_OK);
+
+		for (int i=0;i< MarkHistory.size();i++)
 		{
-			// 切换Handle
-			int MarkLine = ::SendMessage(curScintilla, SCI_MARKERLINEFROMHANDLE, MarkHistory[i].markHandle, 0);
-			MarkHistory[i].markHandle = ::SendMessage(curScintilla, SCI_MARKERADD, MarkLine, _SAVE_INDEX);
-			// 移除Marker
-			::SendMessage(curScintilla, SCI_MARKERDELETE, MarkLine, _MARK_INDEX);
-			// 移走
-			//MarkHistory.erase(MarkHistory.begin()+i);
-			//i--;
+			if ( MarkHistory[i].BufferID == currTmpBufferID)
+			{
+				// 切换Handle
+				int MarkLine = ::SendMessage(curScintilla, SCI_MARKERLINEFROMHANDLE, MarkHistory[i].markHandle, 0);
+				MarkHistory[i].markHandle = ::SendMessage(curScintilla, SCI_MARKERADD, MarkLine, _SAVE_INDEX);
+				// 移除Marker
+				::SendMessage(curScintilla, SCI_MARKERDELETE, MarkLine, _MARK_INDEX);
+				// 移走
+				//MarkHistory.erase(MarkHistory.begin()+i);
+				//i--;
+			}
 		}
+		// 2011-12-08 add for 0.4.7.4
+		int MarkLine = -1;
+		int markerMask1 = ( 1 << _MARK_INDEX );
+		// 有些marker可能未在队列中，统一更新
+		while((MarkLine = ::SendMessage(curScintilla, SCI_MARKERNEXT, MarkLine+1, markerMask1)) !=-1)
+		{
+			//TCHAR tmp[200]={0};
+			//wsprintf(tmp,TEXT("%d"),MarkLine);
+			//MessageBox(NULL,tmp,NULL,MB_OK);
+			::SendMessage(curScintilla, SCI_MARKERADD, MarkLine, _SAVE_INDEX);
+		}
+		::SendMessage(curScintilla, SCI_MARKERDELETEALL, _MARK_INDEX,0);
 	}
-	// 2011-12-08 add for 0.4.7.4
-	int MarkLine = -1;
-	int markerMask1 = ( 1 << _MARK_INDEX );
-	// 有些marker可能未在队列中，统一更新
-	while((MarkLine = ::SendMessage(curScintilla, SCI_MARKERNEXT, MarkLine+1, markerMask1)) !=-1)
-	{
-	//TCHAR tmp[200]={0};
-	//wsprintf(tmp,TEXT("%d"),MarkLine);
-	//MessageBox(NULL,tmp,NULL,MB_OK);
-	::SendMessage(curScintilla, SCI_MARKERADD, MarkLine, _SAVE_INDEX);
-	}
-	::SendMessage(curScintilla, SCI_MARKERDELETEALL, _MARK_INDEX,0);
 
 }
 int AddMarkFromLine(int line)
@@ -760,19 +768,29 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		//(HBITMAP)::LoadImage((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDI_ICON_PREVIOUS), IMAGE_ICON, 16, 16, (LR_DEFAULTCOLOR));
 		auto HRO = (HINSTANCE)g_hModule;
 
-		g_TBPreviousChg.hToolbarIcon = ::LoadIcon(HRO, MAKEINTRESOURCE(IDI_ICON_PREV1));
+		g_TBPreviousChg.HRO = HRO;
+		g_TBPreviousChg.resIcon = IDI_ICON_PREV1;
+		g_TBPreviousChg.resIconHot = IDI_ICON_PREV1_ACT;
+		g_TBPreviousChg.resIconGray = IDI_ICON_PREV1_OFF;
+		//g_TBPreviousChg.hToolbarIcon = ::LoadIcon(HRO, MAKEINTRESOURCE(IDI_ICON_PREV1));
 		g_TBPreviousChg.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP3), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
 		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuChgPrevious]._cmdID, (LPARAM)&g_TBPreviousChg);
 
-		g_TBPrevious.hToolbarIcon = ::LoadIcon(HRO, MAKEINTRESOURCE(IDI_ICON_PREV));
+		g_TBPrevious.HRO = HRO;
+		g_TBPrevious.resIcon = IDI_ICON_PREV;
+		//g_TBPrevious.hToolbarIcon = ::LoadIcon(HRO, MAKEINTRESOURCE(IDI_ICON_PREV));
 		g_TBPrevious.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP1), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
 		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuPrevious]._cmdID, (LPARAM)&g_TBPrevious);
-		
+
+		g_TBNext.HRO = HRO;
+		g_TBNext.resIcon = IDI_ICON_NEXT;
 		g_TBNext.hToolbarIcon = ::LoadIcon(HRO, MAKEINTRESOURCE(IDI_ICON_NEXT));
 		g_TBNext.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP2), IMAGE_BITMAP, 0, 0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
 		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuNext]._cmdID, (LPARAM)&g_TBNext);
 
-		g_TBNextChg.hToolbarIcon = ::LoadIcon(HRO, MAKEINTRESOURCE(IDI_ICON_NEXT1));
+		g_TBNextChg.HRO = HRO;
+		g_TBNextChg.resIcon = IDI_ICON_NEXT1;
+		//g_TBNextChg.hToolbarIcon = ::LoadIcon(HRO, MAKEINTRESOURCE(IDI_ICON_NEXT1));
 		g_TBNextChg.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP4), IMAGE_BITMAP, 0, 0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
 		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuChgNext]._cmdID, (LPARAM)&g_TBNextChg);
 
@@ -947,6 +965,8 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			currTmpBufferID = notifyCode->nmhdr.idFrom;
 			::SendMessage(nppData._nppHandle, NPPM_GETFULLPATHFROMBUFFERID, (WPARAM)notifyCode->nmhdr.idFrom, (LPARAM)currTmpFile);
 			lstrcpy(currFile,currTmpFile);
+
+			DoSavedColor();
 		}
 		break;
 		case NPPN_FILEBEFORECLOSE:
@@ -1079,12 +1099,16 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			//TCHAR tmp[100]={0};
 			//wsprintf(tmp, TEXT("0x%X\n"),ModifyType);
 			//OutputDebugString(tmp);
+
 			if ( isOpenFile )
 			{
 				break;
 			}
 			if ( notifyCode->nmhdr.hwndFrom != nppData._scintillaMainHandle &&
-				notifyCode->nmhdr.hwndFrom != nppData._scintillaSecondHandle)break;
+				notifyCode->nmhdr.hwndFrom != nppData._scintillaSecondHandle) 
+			{
+				break;
+			}
 			if(LocationList.size()==0)
 			{
 				// 没有数据
@@ -1105,6 +1129,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 				len = -notifyCode->length;
 				flag = true;
 			}
+			
 			if(flag)
 			{
 				if( notifyCode->text == NULL && ( ModifyType == 0x12 || ModifyType == 0x11 ))
@@ -1180,15 +1205,18 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 					}
 				}
 			}
+
+#if 0
+			TCHAR buffer[128];
+			wsprintf(buffer,TEXT("ModifyType:%d ; Pointer:%d"), ModifyType, notifyCode);
+			::MessageBox(NULL, buffer, TEXT(""), MB_OK);
+#endif
+
 		}
 		break;
 		case SCN_SAVEPOINTREACHED:
 		{
-			if (NeedMark && !isOpenFile)
-			{
-				// 需要修改当前全部的Mark颜色
-				DoSavedColor();
-			}
+			//DoSavedColor();
 		}
 		break;
 		default:
