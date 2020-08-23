@@ -758,17 +758,22 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		/* add toolbar icon */
 		//g_TBPrevious.hToolbarIcon = ::LoadIcon((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDI_ICON_PREVIOUS));
 		//(HBITMAP)::LoadImage((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDI_ICON_PREVIOUS), IMAGE_ICON, 16, 16, (LR_DEFAULTCOLOR));
+		auto HRO = (HINSTANCE)g_hModule;
 
-		g_TBPreviousChg.hToolbarBmp = (HBITMAP)::LoadImage((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDB_BITMAP3), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
+		g_TBPreviousChg.hToolbarIcon = ::LoadIcon(HRO, MAKEINTRESOURCE(IDI_ICON_PREV1));
+		g_TBPreviousChg.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP3), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
 		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuChgPrevious]._cmdID, (LPARAM)&g_TBPreviousChg);
 
-		g_TBPrevious.hToolbarBmp = (HBITMAP)::LoadImage((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDB_BITMAP1), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
+		g_TBPrevious.hToolbarIcon = ::LoadIcon(HRO, MAKEINTRESOURCE(IDI_ICON_PREV));
+		g_TBPrevious.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP1), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
 		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuPrevious]._cmdID, (LPARAM)&g_TBPrevious);
-		//g_TBNext.hToolbarIcon = ::LoadIcon((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDI_ICON_NEXT));
-		g_TBNext.hToolbarBmp = (HBITMAP)::LoadImage((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDB_BITMAP2), IMAGE_BITMAP, 0, 0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
+		
+		g_TBNext.hToolbarIcon = ::LoadIcon(HRO, MAKEINTRESOURCE(IDI_ICON_NEXT));
+		g_TBNext.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP2), IMAGE_BITMAP, 0, 0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
 		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuNext]._cmdID, (LPARAM)&g_TBNext);
 
-		g_TBNextChg.hToolbarBmp = (HBITMAP)::LoadImage((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDB_BITMAP4), IMAGE_BITMAP, 0, 0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
+		g_TBNextChg.hToolbarIcon = ::LoadIcon(HRO, MAKEINTRESOURCE(IDI_ICON_NEXT1));
+		g_TBNextChg.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP4), IMAGE_BITMAP, 0, 0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
 		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuChgNext]._cmdID, (LPARAM)&g_TBNextChg);
 
 		/////初始化变量/////////////////////////////////////////////////////////////////////

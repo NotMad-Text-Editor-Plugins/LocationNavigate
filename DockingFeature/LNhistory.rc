@@ -150,6 +150,10 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_ICON1               ICON                    "icon1.ico"
+IDI_ICON_NEXT ICON DISCARDABLE "next.ico"
+IDI_ICON_PREV ICON DISCARDABLE "prev.ico"
+IDI_ICON_NEXT1 ICON DISCARDABLE "next1.ico"
+IDI_ICON_PREV1 ICON DISCARDABLE "prev1.ico"
 #endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -571,6 +571,13 @@
 #define IDB_BITMAP4                     111
 #define VK_F1                           0x70
 #define IDI_ICON1                       112
+
+#define IDI_ICON5                113
+#define IDI_ICON_NEXT                114
+#define IDI_ICON_PREV                115
+#define IDI_ICON_NEXT1                116
+#define IDI_ICON_PREV1                117
+
 #define VK_F2                           0x71
 #define VK_F3                           0x72
 #define VK_F4                           0x73
