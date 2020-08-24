@@ -39,6 +39,7 @@ void LocationNavigateDlg::refreshValue()
 }
 void EnableTBButton(menuList flagIndex,bool state)
 {
+	//::MessageBox(NULL, TEXT("111"), TEXT(""), MB_OK);
 	if ( menuState[flagIndex] !=state )
 	{
 		//TCHAR buffer[100]={0};
@@ -49,6 +50,11 @@ void EnableTBButton(menuList flagIndex,bool state)
 			funcItem[flagIndex]._cmdID,MF_BYCOMMAND|(state?MF_ENABLED:MF_GRAYED));
 		if ( IconID[flagIndex] !=-1)
 		{
+			if(!IsWindow(hToolbar)) {
+				HWND hReBar;
+				hReBar = FindWindowEx( nppData._nppHandle, hReBar, TEXT( "ReBarWindow32" ), NULL );
+				hToolbar = FindWindowEx( hReBar, NULL, TEXT( "ToolbarWindow32" ), NULL );
+			}
 			::SendMessage(hToolbar,TB_ENABLEBUTTON,(WPARAM)IconID[flagIndex],MAKELONG((state?TRUE:FALSE), 0));
 			menuState[flagIndex] = state;
 		}

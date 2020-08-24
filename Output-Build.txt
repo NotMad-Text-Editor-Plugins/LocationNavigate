@@ -1,0 +1,1 @@
+﻿1>------ Build started: Project: LocationNavigate, Configuration: Unicode Realeas x64 ------

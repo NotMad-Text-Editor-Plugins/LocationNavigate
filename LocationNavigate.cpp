@@ -797,6 +797,9 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 	}
 	switch (notifyCode->nmhdr.code) 
 	{
+		case NPPN_TBMODIFICATION:
+			//::MessageBox(NULL, TEXT("111"), TEXT(""), MB_OK);
+		break;
 		case NPPN_SHUTDOWN:
 		{
 			commandMenuCleanUp();
