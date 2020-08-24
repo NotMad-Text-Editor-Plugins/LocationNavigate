@@ -56,7 +56,7 @@ private :
 	long			SelfID;
    
     static LRESULT CALLBACK SelfCtrlProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam){
-        return ((SelfCtrl *)(::GetWindowLong(hwnd, GWLP_USERDATA)))->runProc(hwnd, Message, wParam, lParam);
+        return ((SelfCtrl *)(::GetWindowLongPtr(hwnd, GWLP_USERDATA)))->runProc(hwnd, Message, wParam, lParam);
     };
     LRESULT runProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
 	void SetTextBkColor(HWND hwnd);

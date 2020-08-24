@@ -308,7 +308,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(projectdir)../../PowerEditor\bin64\plugins\$(TargetName)\$(TargetName)$(TargetExt)</OutputFile>
+      <OutputFile>D:\Downloads\npp.7.7.1.bin\plugins\LocationNavigate\$(TargetName)$(TargetExt)</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)LocationNavigate.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
@@ -330,7 +330,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)LocationNavigate.dll</OutputFile>
+      <OutputFile>$(projectdir)../../PowerEditor\bin64\plugins\$(TargetName)\$(TargetName)$(TargetExt)</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)LocationNavigate.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>

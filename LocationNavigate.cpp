@@ -770,7 +770,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 
 		long version = ::SendMessage(nppData._nppHandle, NPPM_GETNOTMADVERSION, 0, 0);
 
-		bool legacy = 0;//version<0x666;
+		bool legacy = version<0x666;
 
 		g_TBPreviousChg.HRO = HRO;
 		if(legacy)g_TBPreviousChg.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP3), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));

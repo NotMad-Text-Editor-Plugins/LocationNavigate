@@ -97,7 +97,7 @@ void SelfCtrl::create(HWND itemHandle,long MarkIndex, long color)
 	bkColor = color;
 	SelfID = MarkIndex;
 	// turn on notify style
-    ::SetWindowLong(itemHandle, GWL_STYLE, ::GetWindowLong(itemHandle, GWL_STYLE) | SS_NOTIFY);
+    //::SetWindowLong(itemHandle, GWL_STYLE, ::GetWindowLong(itemHandle, GWL_STYLE) | SS_NOTIFY);
 
 	// set the URL text (not the display text)
 
@@ -106,11 +106,14 @@ void SelfCtrl::create(HWND itemHandle,long MarkIndex, long color)
 
 	// set the visited colour
 
-	// subclass the static control
-    _oldproc = (WNDPROC)::SetWindowLong(itemHandle, GWLP_WNDPROC, (LONG)SelfCtrlProc);
+	// subclass the static control	
+	//_oldproc = (WNDPROC)::GetWindowLongPtr(itemHandle,GWLP_WNDPROC);
+	_oldproc = (WNDPROC) ::SetWindowLongPtr(itemHandle,GWLP_WNDPROC,(LONG_PTR) SelfCtrlProc);
 
 	// associate the URL structure with the static control
-    ::SetWindowLong(itemHandle, GWLP_USERDATA, (LONG)this);
+    //::SetWindowLong(itemHandle, GWLP_USERDATA, (LONG)this);
+
+    ::SetWindowLongPtr(itemHandle, GWLP_USERDATA, (LONG_PTR)this);
 }
 void SelfCtrl::SetTextBkColor(HWND hwnd)
 {

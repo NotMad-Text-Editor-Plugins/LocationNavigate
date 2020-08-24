@@ -272,6 +272,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 			_hSaveColor = GetDlgItem(_hSelf, ID_STATIC_SAVECOLOR);
 			_savecolor.init(_hInst, _hSelf);
 			_savecolor.create(_hSaveColor,_SAVE_INDEX,SaveColor);
+
 			refreshValue();
 			// 
 			//SetTimer(_hSelf,1,500,NULL);

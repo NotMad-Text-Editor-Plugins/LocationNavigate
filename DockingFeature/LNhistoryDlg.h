@@ -100,7 +100,9 @@ void EnableTBButton(menuList flagIndex,bool state);
 class LocationNavigateDlg : public DockingDlgInterface
 {
 public :
-	LocationNavigateDlg() : DockingDlgInterface(IDD_LOCATIONNAVIGATE){};
+	LocationNavigateDlg() : DockingDlgInterface(IDD_LOCATIONNAVIGATE) {
+		//::MessageBox(NULL,TEXT("init 1"),TEXT("111"),MB_OK);
+	};
 
     virtual void display(bool toShow = true) const{
         DockingDlgInterface::display(toShow);
