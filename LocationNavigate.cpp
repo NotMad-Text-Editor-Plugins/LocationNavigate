@@ -20,6 +20,9 @@
 #include "LNhistoryDlg.h"
 #include <list>
 #include<WinBase.h>
+
+#define UseThread 0
+
 ////////////////SELF DATA BEGIN///////////
 TCHAR currFile[MAX_PATH]={0};
 static int currBufferID=-1,PrePositionNumber=-1;
@@ -397,68 +400,74 @@ void InitBookmark()
 		// SC_MARK_FULLRECT,SC_MARK_UNDERLINE ,SC_MARK_CIRCLE,SC_MARK_ARROW, SC_MARK_SMALLRECT,
 	}
 }
+
 static bool ThreadNeedRefresh = false;
+
+void processNavActions() {
+	while ( !ActionDataList.empty())
+	{
+		if ( !ThreadNeedRefresh )
+		{
+			ThreadNeedRefresh = true;
+		}
+		ActionData tmpAct = ActionDataList.front();
+		switch( tmpAct.type )
+		{
+		case ActionModify :
+			// 修改的
+			DoModify(tmpAct.length,tmpAct.position);
+			break;
+		case ActionActive :
+		{
+			// 页面激活，将全局变量赋值
+			currBufferID =  currTmpBufferID;
+			lstrcpy(currFile,currTmpFile);
+			// 需要更新全部 bufferID=0的值
+			for (int i=0;i<LocationList.size();i++ )
+			{
+				if ( LocationList[i].bufferID == 0 && lstrcmp( LocationList[i].FilePath,currFile) == 0 )
+				{
+					LocationList[i].bufferID = currBufferID;
+				}
+			}
+			InitBookmark();
+		}
+		break;
+		case ActionClosed :
+			// 进行列表检查
+			DoFilesCheck();
+			break;
+		case ActionLocation :
+		{
+			// 进行定位
+			LocationInfo tmp;
+			tmp.position = tmpAct.position;
+			tmp.bufferID = currBufferID;
+			tmp.changed =  tmpAct.changed;
+			lstrcpy(tmp.FilePath,currFile);
+			AddListData(&tmp);
+		}
+		break;
+		}
+		ActionDataList.pop_front();
+	}
+	if ( ThreadNeedRefresh )
+	{
+		_LNhistory.refreshDlg();
+		ThreadNeedRefresh = false;
+	}
+}
+
 DWORD   WINAPI   ThreadFunc(   LPVOID   lpParam   )  
 {
 	int cc=0;
 	while (!AllCloseFlag)
 	{
 		cc++;
-		while ( !ActionDataList.empty())
-		{
-			if ( !ThreadNeedRefresh )
-			{
-				ThreadNeedRefresh = true;
-			}
-			ActionData tmpAct = ActionDataList.front();
-			switch( tmpAct.type )
-			{
-				case ActionModify :
-					// 修改的
-					DoModify(tmpAct.length,tmpAct.position);
-					break;
-				case ActionActive :
-					{
-						// 页面激活，将全局变量赋值
-						currBufferID =  currTmpBufferID;
-						lstrcpy(currFile,currTmpFile);
-						// 需要更新全部 bufferID=0的值
-						for (int i=0;i<LocationList.size();i++ )
-						{
-							if ( LocationList[i].bufferID == 0 && lstrcmp( LocationList[i].FilePath,currFile) == 0 )
-							{
-								LocationList[i].bufferID = currBufferID;
-							}
-						}
-						InitBookmark();
-					}
-					break;
-				case ActionClosed :
-					// 进行列表检查
-					DoFilesCheck();
-					break;
-				case ActionLocation :
-					{
-						// 进行定位
-						LocationInfo tmp;
-						tmp.position = tmpAct.position;
-						tmp.bufferID = currBufferID;
-						tmp.changed =  tmpAct.changed;
-						lstrcpy(tmp.FilePath,currFile);
-						AddListData(&tmp);
-					}
-					break;
-			}
-			ActionDataList.pop_front();
-		}
-		if ( ThreadNeedRefresh )
-		{
-			_LNhistory.refreshDlg();
-			ThreadNeedRefresh = false;
-		}
+		processNavActions();
 
 
-		bool val = (((int)(cc/10))%2)==0;
+		bool val = (((int)(cc/10))%2)==0; //一闪一闪亮晶晶
 
 		//EnableTBButton( menuNext,  val);
 
@@ -475,7 +484,6 @@ DWORD   WINAPI   ThreadFunc(   LPVOID   lpParam   )
 		//hToolbar = FindWindowEx( hReBar, NULL, TEXT( "ToolbarWindow32" ), NULL );
 		//
 		//::SendMessage( hToolbar, TB_ENABLEBUTTON, ( WPARAM )funcItem[menuNext]._cmdID,  MAKELONG( val , 0 ) );
-
 
 		Sleep(100);
 	}
@@ -936,6 +944,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 				}
 				LocationPos = LocationList.size()-1;
 			}
+#if UseThread
 			// 不能启用线程，会引起关闭时崩溃
 			DWORD   dwThreadId,   dwThrdParam   =   1;
 			HANDLE   hThread;
@@ -947,6 +956,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 				0,//   use   default   creation   flags  
 				&dwThreadId);//   returns   the   thread   identifier
 			CloseHandle(hThread);
+#endif
 			//InitBookmark();
 			ready = true;
 		}
@@ -1217,8 +1227,11 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		}
 		break;
 		default:
-		return;
+		break;
 	}
+#if not UseThread
+	processNavActions();
+#endif
 }
 
 
