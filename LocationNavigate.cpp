@@ -705,6 +705,7 @@ void DelBookmark(int lineNo,int pos,int lineAdd)
 	}
 	MarkHistory.erase(MarkHistory.begin()+isMarkedIndex);
 }
+
 //////////  SELF FUNCTION END ////////
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  reasonForCall, 
