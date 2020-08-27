@@ -428,7 +428,25 @@ bool getMenuItemNeedsKeep(int mid) {
 	return false;
 }
 
-void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf){
+bool getMenuItemChecked(int mid) {
+	switch(mid) {
+		case menuAutoRecord:
+			return bAutoRecord;
+		case menuOption:
+			return PositionSetting;
+		case menuInCurr:
+			return InCurr;
+		case menuNeedMark:
+			return NeedMark;
+		case menuSkipClosed:
+			return skipClosed;
+		case menuClearOnClose:
+			return AutoClean;
+	}
+	return false;
+}
+
+void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf, bool pinDlg){
 	int cmd = TrackPopupMenu(pluginMenu, TPM_RETURNCMD, rc->left,  rc->top+toolbarHeight, 0, _hSelf, NULL);
 
 	TCHAR buffer[100]={0};
@@ -439,8 +457,8 @@ void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf){
 		for(int idx=0;idx<nbFunc;idx++) {
 			if(funcItem[idx]._cmdID==cmd) {
 				funcItem[idx]._pFunc();
-				if(getMenuItemNeedsKeep(idx)) {
-					simulToolbarMenu(pluginMenu, rc, _hSelf);
+				if(pinDlg && getMenuItemNeedsKeep(idx)) {
+					simulToolbarMenu(pluginMenu, rc, _hSelf, pinDlg);
 				}
 			}
 		}
@@ -455,17 +473,30 @@ void LocationNavigateDlg::OnToolBarCommand( UINT Cmd )
 
 			HMENU pluginMenu = (HMENU)::SendMessage(nppData._nppHandle, NPPM_GETPLUGININFO, 0 , (LPARAM)text);
 
+			bool pinDlg=1;
+
+			if(!pluginMenu) {
+				pinDlg=0;
+				//::MessageBox(NULL, TEXT("111"), TEXT(""), MB_OK);
+				pluginMenu = ::CreatePopupMenu();
+				unsigned short j = 0;
+				for ( ; j < nbFunc ; ++j)
+				{
+					if (funcItem[j]._pFunc == NULL)
+					{
+						::InsertMenu(pluginMenu, j, MF_BYPOSITION | MF_SEPARATOR, 0, TEXT(""));
+						continue;
+					}
+					generic_string itemName = funcItem[j]._itemName;
+					::InsertMenu(pluginMenu, j, MF_BYPOSITION, funcItem[j]._cmdID, itemName.c_str());
+					if (getMenuItemChecked(j))
+						::CheckMenuItem(pluginMenu, funcItem[j]._cmdID, MF_BYCOMMAND | MF_CHECKED);
+				}
+			}
 
 			RECT rc;
-			//getClientRect(rc);
 			GetWindowRect(_hSelf, &rc);
-
-			//GetWindowRgn
-
-			//nppData._nppHandle
-
-			simulToolbarMenu(pluginMenu, &rc, _hSelf);
-
+			simulToolbarMenu(pluginMenu, &rc, _hSelf, pinDlg);
 		return;
 	}
 }

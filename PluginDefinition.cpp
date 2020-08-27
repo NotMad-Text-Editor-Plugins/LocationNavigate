@@ -224,12 +224,12 @@ void commandMenuInit()
 
 	setCommand(menuSeparator1, TEXT("-SEPARATOR-"),NULL, NULL, false);
 
-	setCommand(menuSkipClosed, TEXT("Skip closed File"), SkipClosed, NULL, false);
+	setCommand(menuSkipClosed, TEXT("Skip Closed File"), SkipClosed, NULL, false);
 	setCommand(menuClearOnClose, TEXT("Auto clear when close"), MarkChange, markKey, false);
 
 
 	setCommand(menuSeparator2, TEXT("-SEPARATOR-"),NULL, NULL, false);
-	setCommand(menuCheckUpdate, TEXT("Check for update"), checkUpdate, NULL, false);
+	setCommand(menuPinMenu, TEXT("Pin menu"), pinMenu, NULL, false);
 	setCommand(menuAbout, TEXT("About Location Navigate"), ShowAbout, NULL, false);
 
 	//int items[]{menuAutoRecord};
@@ -503,7 +503,7 @@ void ShowAbout()
 {
 	::MessageBox(nppData._nppHandle, TEXT(" You can use Ctrl+ - jump to previous cursor position \n You can use Ctrl+Shift+ - jump to next cursor position \n You can use Ctrl+Alt+ Z jump to previous changed position \n You can use Ctrl+Alt+ Y jump to next changed position \n 'Auto clear when close'- Will remove the file's record when file closed.\n 'Always record'- Will always record the position even after you jumped.\n 'Save record when App exit'- Record data when application exit and it will be loaded in next run \n 'In Curr'- If checked, navigate only in current file\n 'Mark'- If checked, modified line will be marked by bookmark or color\n 'Mark Color/Save Color'- Available if not select mark with bookmark, you could mark with different symbol.  \n\n Version: 0.4.7.7   Author: Austin Young<pattazl@gmail.com>"), TEXT("About Location Navigate"), MB_OK);
 }
-void checkUpdate()
+void pinMenu()
 {
 	ShellExecute(NULL, TEXT("open"),TEXT("http://sourceforge.net/projects/locationnav/files"), NULL, NULL, SW_SHOW);
 }

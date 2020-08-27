@@ -58,7 +58,7 @@ enum menuList
 	menuClearOnClose,
 
 	menuSeparator2,
-	menuCheckUpdate,
+	menuPinMenu,
 	menuAbout,
 
 	menuCount,
@@ -120,7 +120,7 @@ void ClearAllRecords();
 void NavigateInCurr();
 void MarkChange();
 void ShowAbout();
-void checkUpdate();
+void pinMenu();
 
 extern toolbarIcons		g_TBPrevious;
 extern toolbarIcons		g_TBNext;
