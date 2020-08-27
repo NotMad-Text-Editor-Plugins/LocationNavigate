@@ -21,7 +21,7 @@
 #include <list>
 #include<WinBase.h>
 
-#define UseThread 0
+#define UseThread 1
 
 ////////////////SELF DATA BEGIN///////////
 TCHAR currFile[MAX_PATH]={0};
@@ -105,11 +105,11 @@ void DoFilesCheck()
 	{
 		buffer[i] = new TCHAR[MAX_PATH];
 	}
+	//todo msg(NPPM_GETOPENFILENAMES) return closed tmp files
 	::SendMessage(nppData._nppHandle, NPPM_GETOPENFILENAMES, (WPARAM)buffer, (LPARAM)filecount);
-	//for (int i=0;i<filecount;i++)
-	//{
-	//	::MessageBox(NULL,buffer[i] , TEXT(""), MB_OK);
-	//}
+	
+	//for (int i=0;i<filecount;i++) ::MessageBox(NULL, buffer[i], TEXT(""), MB_OK);
+	
 	// 将所有列表中不存在文件的都删除掉
 	long PreBufferID= -1;
 	bool haveFiles = false;
@@ -757,8 +757,9 @@ static long preModifyLineAdd = -1;//之前添加的行数
 extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 {
 	int ModifyType = notifyCode->modificationType;
+	int code = notifyCode->nmhdr.code;
 	if ((notifyCode->nmhdr.hwndFrom == nppData._nppHandle) && 
-		(notifyCode->nmhdr.code == NPPN_TBMODIFICATION))
+		(code == NPPN_TBMODIFICATION))
 	{
 		/* add toolbar icon */
 		auto HRO = (HINSTANCE)g_hModule;
@@ -792,7 +793,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			IconID[i] = -1;
 		}
 	}
-	switch (notifyCode->nmhdr.code) 
+	switch (code) 
 	{
 		case NPPN_TBMODIFICATION:
 			//::MessageBox(NULL, TEXT("111"), TEXT(""), MB_OK);
@@ -846,6 +847,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			}
 			// 刷新菜单
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuInCurr]._cmdID, MF_BYCOMMAND | (InCurr?MF_CHECKED:MF_UNCHECKED));
+			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuSkipClosed]._cmdID, MF_BYCOMMAND | (skipClosed?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuAutoRecord]._cmdID, MF_BYCOMMAND | (bAutoRecord?MF_CHECKED:MF_UNCHECKED));
 			::EnableMenuItem(::GetMenu(nppData._nppHandle),
 				funcItem[menuManualRecord]._cmdID,MF_BYCOMMAND|(bAutoRecord?MF_GRAYED:MF_ENABLED ));
@@ -993,13 +995,15 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		// 页面打开或关闭
 			if ( AutoClean )
 			{
-				// 只需要告知需要进行文件列表的检查
-				ActionData tmp;
-				tmp.type = ActionClosed;
-				ActionDataList.push_back(tmp);
+				if(NPPN_FILECLOSED == code) {
+					// 只需要告知需要进行文件列表的检查
+					ActionData tmp;
+					tmp.type = ActionClosed;
+					ActionDataList.push_back(tmp);
+				}
 				
 				// 第一次默认文件打开时会在原文件基础上打开
-				if ( notifyCode->nmhdr.code == NPPN_FILEOPENED && LocationList.size()>0)
+				if ( code == NPPN_FILEOPENED && LocationList.size()>0)
 				{
 					if ( LocationList[0].position == 0 && lstrcmp(LocationList[0].FilePath,NEWFILE)==0 )
 					{

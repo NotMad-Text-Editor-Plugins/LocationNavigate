@@ -59,6 +59,7 @@ const TCHAR strAutoClean[] = TEXT("AutoClean");
 const TCHAR strAlwaysRecord[] = TEXT("AlwaysRecord");
 const TCHAR strSaveRecord[] = TEXT("SaveRecord");
 const TCHAR strInCurr[] = TEXT("InCurr");
+const TCHAR strSkipClosed[] = TEXT("SkNill");
 const TCHAR strAutoRecord[] = TEXT("AutoRecord");
 const TCHAR strNeedMark[] = TEXT("NeedMark");
 const TCHAR strByBookMark[] = TEXT("ByBookMark");
@@ -78,6 +79,7 @@ extern bool AutoClean ;
 extern bool AlwaysRecord;
 extern bool SaveRecord;
 extern bool InCurr;
+extern bool skipClosed;
 extern bool bAutoRecord;
 extern bool NeedMark;
 extern MarkType ByBookMark;
@@ -95,7 +97,7 @@ extern NppData nppData;
 extern void AddList(bool flag=false);
 extern void ClearLocationList();
 
-void SetPosByIndex();
+bool SetPosByIndex(int delta, bool doit=true);
 void EnableTBButton(menuList flagIndex,bool state);
 #define TB_ENABLEBUTTON         (WM_USER + 1)
 class LocationNavigateDlg : public DockingDlgInterface

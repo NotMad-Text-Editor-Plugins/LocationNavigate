@@ -61,16 +61,52 @@ void EnableTBButton(menuList flagIndex,bool state)
 		
 	}
 }
-void SetPosByIndex()
+bool SetPosByIndex(int delta, bool doit)
 {
 	long maxLen = LocationList.size()-1;
+
+	if(delta) {
+		LocationPos+=delta;
+	}
+
+	long res = 0;
+
 	if (maxLen==-1 || LocationPos<0 || LocationPos>maxLen)
 	{
-		return;
+		return true;
 	}
 	PositionSetting = true;
+
+
+	//TCHAR buffer[300]={0};
+	//wsprintf(buffer,TEXT("fN=%s"), LocationList[LocationPos].FilePath);
+	//::MessageBox(NULL, buffer, TEXT(""), MB_OK);
+
+	if(delta) {
+		if(skipClosed) {
+			while(LocationPos>=0 && LocationPos<=maxLen
+				&& 1!=(res=SendMessage(nppData._nppHandle, NPPM_SWITCHTOFILE, 0 , (LPARAM)LocationList[LocationPos].FilePath))) {
+				if(doit) {
+					LocationPos+=delta;
+				} else {
+					return false;
+				}
+			}
+			if(LocationPos<0) {
+				LocationPos=0;
+			} else if(LocationPos>maxLen) {
+				LocationPos=maxLen;
+			}
+		}
+	}
+
 	long pos = LocationList[LocationPos].position;
-	long res = ::SendMessage(nppData._nppHandle, NPPM_DOOPEN, 0 , (LPARAM)LocationList[LocationPos].FilePath);
+	
+	if(res!=1) {
+		res = ::SendMessage(nppData._nppHandle, skipClosed?NPPM_SWITCHTOFILE:NPPM_DOOPEN, 
+			0 , (LPARAM)LocationList[LocationPos].FilePath);
+	}
+	
 	if (pos != -1 && res ==1)
 	{
 		// Get the current scintilla
@@ -123,6 +159,7 @@ void SetPosByIndex()
 	{
 		PositionSetting = false;
 	}
+	return true;
 }
 void ClearLocationList()
 {
@@ -221,7 +258,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 					if ( index > -1 && index < LocationList.size())
 					{
 						LocationPos = index;
-						SetPosByIndex();
+						SetPosByIndex(0, false);
 					}
 					//::SendMessage(nppData._nppHandle, NPPM_GETPOSFROMBUFFERID, 0, (LPARAM)&which);
 					refreshDlg();
@@ -446,6 +483,7 @@ HWND curScintilla=0;
 bool AlwaysRecord=false;
 bool SaveRecord = false;
 bool InCurr = false;
+bool skipClosed = false;
 bool bAutoRecord = true;
 bool NeedMark = false;
 MarkType ByBookMark = MarkHightLight;

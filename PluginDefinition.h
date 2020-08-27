@@ -114,6 +114,7 @@ void NextChangedLocation();
 
 void LocationNavigateHistoryDlg();
 void AutoRecord();
+void SkipClosed();
 void ManualRecord();
 void ClearAllRecords();
 void NavigateInCurr();

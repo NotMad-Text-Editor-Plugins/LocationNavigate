@@ -84,6 +84,8 @@ void pluginCleanUp()
 	::WritePrivateProfileString(sectionName, strSaveRecord, str, iniFilePath);
 	wsprintf(str,TEXT("%d"),InCurr?1:0);
 	::WritePrivateProfileString(sectionName, strInCurr, str, iniFilePath);
+	wsprintf(str,TEXT("%d"),skipClosed?1:0);
+	::WritePrivateProfileString(sectionName, strSkipClosed, str, iniFilePath);
 	wsprintf(str,TEXT("%d"),bAutoRecord?1:0);
 	::WritePrivateProfileString(sectionName, strAutoRecord, str, iniFilePath);
 	
@@ -126,6 +128,7 @@ void commandMenuInit()
 	AlwaysRecord = (::GetPrivateProfileInt(sectionName, strAlwaysRecord, 0, iniFilePath)== 1) ;
 	SaveRecord   = (::GetPrivateProfileInt(sectionName, strSaveRecord, 0, iniFilePath)== 1) ;
 	InCurr   = (::GetPrivateProfileInt(sectionName, strInCurr, 0, iniFilePath)== 1) ;
+	skipClosed   = (::GetPrivateProfileInt(sectionName, strSkipClosed, 0, iniFilePath)== 1) ;
 	bAutoRecord   = (::GetPrivateProfileInt(sectionName, strAutoRecord, 1, iniFilePath)== 1) ;
 	NeedMark = (::GetPrivateProfileInt(sectionName, strNeedMark, 1, iniFilePath)== 1) ;
 	ByBookMark = (MarkType)::GetPrivateProfileInt(sectionName, strByBookMark, 0, iniFilePath);
@@ -218,7 +221,14 @@ void commandMenuInit()
 	setCommand(menuInCurr, TEXT("In Current File"), NavigateInCurr, incurrKey, false);
 	setCommand(menuNeedMark, TEXT("Mark Changed Line"), MarkChange, markKey, false);
 
+
 	setCommand(menuSeparator1, TEXT("-SEPARATOR-"),NULL, NULL, false);
+
+	setCommand(menuSkipClosed, TEXT("Skip closed File"), SkipClosed, NULL, false);
+	setCommand(menuClearOnClose, TEXT("Auto clear when close"), MarkChange, markKey, false);
+
+
+	setCommand(menuSeparator2, TEXT("-SEPARATOR-"),NULL, NULL, false);
 	setCommand(menuCheckUpdate, TEXT("Check for update"), checkUpdate, NULL, false);
 	setCommand(menuAbout, TEXT("About Location Navigate"), ShowAbout, NULL, false);
 
@@ -280,11 +290,10 @@ void PreviousLocation()
 					}
 				}
 			}
-		}else
-		{
-			LocationPos--;
+			SetPosByIndex(0);
+		} else {
+			SetPosByIndex(-1);
 		}
-		SetPosByIndex();
 		_LNhistory.refreshDlg();
 	}
 }
@@ -307,11 +316,10 @@ void NextLocation()
 					};
 				}
 			}
-		}else
-		{
-			LocationPos++;
+			SetPosByIndex(0);
+		} else {
+			SetPosByIndex(1);
 		}
-		SetPosByIndex();
 		_LNhistory.refreshDlg();
 	}
 }
@@ -343,8 +351,10 @@ void PreviousChangedLocation()
 			}
 			if ( samefile )
 			{
-				LocationPos = pos;
-				SetPosByIndex();
+				//LocationPos = pos;
+				if(!SetPosByIndex(pos-LocationPos, false)) {
+					continue;
+				}
 				_LNhistory.refreshDlg();
 				break;
 			}
@@ -377,8 +387,10 @@ void NextChangedLocation()
 			}
 			if ( samefile )
 			{
-				LocationPos = pos;
-				SetPosByIndex();
+				//LocationPos = pos;
+				if(!SetPosByIndex(pos-LocationPos, false)) {
+					continue;
+				}
 				_LNhistory.refreshDlg();
 				break;
 			}
@@ -405,6 +417,13 @@ void ClearAllRecords()
 	ClearLocationList();
 	_LNhistory.refreshDlg();
 }
+void SkipClosed()
+{
+	skipClosed = !skipClosed;
+	::CheckMenuItem(::GetMenu(nppData._nppHandle),
+		funcItem[menuSkipClosed]._cmdID, MF_BYCOMMAND | (skipClosed?MF_CHECKED:MF_UNCHECKED));
+}
+
 void NavigateInCurr()
 {
 	InCurr = !InCurr;
