@@ -747,19 +747,7 @@ extern "C" __declspec(dllexport) FuncItem * getFuncsArray(int *nbF)
 	*nbF = nbFunc;
 	return funcItem;
 }
-typedef struct _TBBUTTON {
-	int iBitmap;
-	int idCommand;
-	BYTE fsState;
-	BYTE fsStyle;
-#ifdef _WIN64
-	BYTE bReserved[6];          // padding for alignment
-#elif defined(_WIN32)
-	BYTE bReserved[2];          // padding for alignment
-#endif
-	DWORD_PTR dwData;
-	INT_PTR iString;
-} TBBUTTON, NEAR* PTBBUTTON, *LPTBBUTTON;
+
 typedef const TBBUTTON *LPCTBBUTTON;
 #define TB_GETBUTTON            (WM_USER + 23)
 #define TB_BUTTONCOUNT          (WM_USER + 24)

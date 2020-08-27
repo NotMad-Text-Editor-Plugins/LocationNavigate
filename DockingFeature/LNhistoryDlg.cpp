@@ -129,12 +129,26 @@ void ClearLocationList()
 	LocationList.clear();
 	LocationPos = -1;
 }
+
+
+ToolBarButtonUnit ListBoxToolBarButtons[] = {
+	{IDM_EX_OPTIONS, -1, -1, -1, IDB_EX_OPTIONS }
+};
+#define ListBoxToolBarSize sizeof(ListBoxToolBarButtons)/sizeof(ToolBarButtonUnit)
+
+int toolbarHeight=28;
+
 INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message) 
 	{
 		case WM_COMMAND : 
 		{
+			if ( (HWND)lParam == toolBar.getHSelf() )
+			{
+				OnToolBarCommand( LOWORD(wParam) );
+				return 0;
+			}
 			switch (wParam)
 			{
 				case MAKELONG(IDC_BUTTON_CLEAR,BN_CLICKED):
@@ -239,6 +253,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 		case WM_INITDIALOG:
 			{
 			_hListBox =	GetDlgItem(_hSelf, IDC_LOC_LIST);
+
 			_hUG_T =	GetDlgItem(_hSelf, ID_UGO_STATIC);
 			_hUG_E =	GetDlgItem(_hSelf, ID_LNHISTORY_EDIT);
 
@@ -276,8 +291,24 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 			_color.create(_hColor,_MARK_INDEX,MarkColor);
 
 			_hSaveColor = GetDlgItem(_hSelf, ID_STATIC_SAVECOLOR);
+
+#if 1
+			ListBoxPanel.init( _hInst, _hSelf );
+			//ListBoxWrap.init(_hInst, ListBoxPanel.getHSelf());
+			//ListBoxPanel.SetChildWindow( &ListBoxWrap );
+			toolBar.init( _hInst, _hSelf, TB_STANDARD, ListBoxToolBarButtons, ListBoxToolBarSize );
+			//toolBar.init( _hInst, ListBoxPanel.getHSelf(), TB_STANDARD, ListBoxToolBarButtons, ListBoxToolBarSize );
+			toolBar.display();
+			ListBoxPanel.SetToolbar( &toolBar );
+#if TBPIsWrapper
+			ListBoxPanel.create(_hSaveColor);
+#else
 			_savecolor.init(_hInst, _hSelf);
 			_savecolor.create(_hSaveColor,_SAVE_INDEX,SaveColor);
+			//RECT rect{0,0,100,100};
+			//ListBoxPanel.reSizeTo(rect);
+#endif
+#endif
 
 			refreshValue();
 			// 
@@ -290,7 +321,11 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 				RECT rc;
 				getClientRect(rc);
 
-				::MoveWindow(_hListBox,rc.left, rc.top, rc.right, rc.bottom-70,TRUE);
+
+				//rc.top+=100;
+				//rc.bottom-=100;
+
+				::MoveWindow(_hListBox,rc.left, rc.top+toolbarHeight, rc.right, rc.bottom-70-toolbarHeight,TRUE);
 
 				::MoveWindow(_hUG_T, rc.left+60, rc.bottom-62, 70, 18, TRUE);
 				::MoveWindow(_hUG_E, rc.left+135, rc.bottom-65, 40, 18, TRUE);
@@ -313,6 +348,9 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 				::MoveWindow(_hSaveRecord, rc.left+60, rc.bottom-22, 150,18, TRUE);
 				::MoveWindow( _hBookmark,  rc.left+220, rc.bottom-22, 120,16, TRUE);
 				::MoveWindow(_hAlways,  rc.left+350, rc.bottom-22, 90,16, TRUE);
+				
+				rc.bottom=toolbarHeight;
+				ListBoxPanel.reSizeTo(rc);
 
 				redraw();
 			}
@@ -339,6 +377,64 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 	}
 	return TRUE;
 }
+
+bool getMenuItemNeedsKeep(int mid) {
+	switch(mid) {
+		case menuAutoRecord:
+		case menuOption:
+		case menuInCurr:
+		case menuNeedMark:
+		case menuSkipClosed:
+		case menuClearOnClose:
+		return true;
+	}
+	return false;
+}
+
+void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf){
+	int cmd = TrackPopupMenu(pluginMenu, TPM_RETURNCMD, rc->left,  rc->top+toolbarHeight, 0, _hSelf, NULL);
+
+	TCHAR buffer[100]={0};
+	wsprintf(buffer,TEXT("cmdcmd=%d"), cmd);
+	//::MessageBox(NULL, buffer, TEXT(""), MB_OK);
+
+	if(cmd) {
+		for(int idx=0;idx<nbFunc;idx++) {
+			if(funcItem[idx]._cmdID==cmd) {
+				funcItem[idx]._pFunc();
+				if(getMenuItemNeedsKeep(idx)) {
+					simulToolbarMenu(pluginMenu, rc, _hSelf);
+				}
+			}
+		}
+	}
+}
+
+void LocationNavigateDlg::OnToolBarCommand( UINT Cmd )
+{
+	switch ( Cmd ) {
+		case IDM_EX_OPTIONS:
+			TCHAR text[]=_T("LocationNavigate.dll");
+
+			HMENU pluginMenu = (HMENU)::SendMessage(nppData._nppHandle, NPPM_GETPLUGININFO, 0 , (LPARAM)text);
+
+
+			RECT rc;
+			//getClientRect(rc);
+			GetWindowRect(_hSelf, &rc);
+
+			//GetWindowRgn
+
+			//nppData._nppHandle
+
+			simulToolbarMenu(pluginMenu, &rc, _hSelf);
+
+		return;
+	}
+}
+
+
+
 deque<LocationInfo>LocationList;
 deque<LocationInfo>LocationSave;
 long LocationPos=0;

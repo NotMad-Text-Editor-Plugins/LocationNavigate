@@ -24,6 +24,7 @@
 #include "resource.h"
 #include <deque>
 #include "menuCmdID.h"
+#include "ToolbarPanel.h"
 
 #define SELF_REFRESH WM_USER+9
 
@@ -197,6 +198,10 @@ protected :
 	SelfCtrl _color,_savecolor;
 private :
 	void refreshValue();
+	ToolbarPanel ListBoxPanel;
+	//Window ListBoxWrap;
+	ToolBar toolBar;
+	void OnToolBarCommand( UINT Cmd );
 };
 
 #endif //LNHISTORY_DLG_H

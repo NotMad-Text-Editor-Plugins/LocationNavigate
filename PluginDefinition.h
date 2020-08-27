@@ -44,16 +44,24 @@ enum menuList
 	menuChgNext ,
 	menuOption,
 	menuSeparator0,
+
 	menuAutoRecord,
 	menuManualRecord,
 	menuClearRecords,
+
 	menuInCurr,
 	menuNeedMark,
 
 	menuSeparator1,
+
+	menuSkipClosed,
+	menuClearOnClose,
+
+	menuSeparator2,
 	menuCheckUpdate,
 	menuAbout,
-	menuCount
+
+	menuCount,
 };
 struct MarkData
 {

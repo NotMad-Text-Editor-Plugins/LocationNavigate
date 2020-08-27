@@ -586,6 +586,21 @@
 #define IDI_ICON_NEXT_ACT                124
 #define IDI_ICON_NEXT_OFF                125
 
+#define IDB_EX_UP                       126
+#define IDB_EX_DOWN                     127
+#define IDB_EX_DELETE                   131
+#define IDB_EX_DELETE_ALL               132
+#define IDB_EX_OPTIONS                  133
+
+#define IDM_EX_UP                       2001
+#define IDM_EX_DOWN                     2002
+#define IDM_EX_PASTE                    2003
+#define IDM_EX_PASTE_ALL                2004
+#define IDM_EX_COPY_TO_CLIPBOARD        2005
+#define IDM_EX_DELETE                   2006
+#define IDM_EX_DELETE_ALL               2007
+#define IDM_EX_OPTIONS                  2008
+
 #define VK_F2                           0x71
 #define VK_F3                           0x72
 #define VK_F4                           0x73

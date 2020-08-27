@@ -98,9 +98,22 @@ END
 //
 
 IDB_BITMAP1             BITMAP                  "previous16.bmp"
+
 IDB_BITMAP2             BITMAP                  "next16.bmp"
+
 IDB_BITMAP3             BITMAP                  "cprevious16.bmp"
+
 IDB_BITMAP4             BITMAP                  "cnext16.bmp"
+
+IDB_EX_UP               BITMAP                  "..\\res\\up.bmp"
+
+IDB_EX_DOWN             BITMAP                  "..\\res\\down.bmp"
+
+IDB_EX_DELETE           BITMAP                  "..\\res\\delete.bmp"
+
+IDB_EX_DELETE_ALL       BITMAP                  "..\\res\\bin_empty.bmp"
+
+IDB_EX_OPTIONS          BITMAP                  "..\\res\\cog.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

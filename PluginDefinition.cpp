@@ -211,7 +211,7 @@ void commandMenuInit()
 	
 	setCommand(menuSeparator0, TEXT("-SEPARATOR-"),NULL, NULL, false);
 	setCommand(menuAutoRecord, TEXT("Auto Record"), AutoRecord, AutoKey, false);
-	setCommand(menuManualRecord, TEXT("Manual Record"), ManualRecord, ManualKey, false);
+	setCommand(menuManualRecord, TEXT("Record"), ManualRecord, ManualKey, false);
 	setCommand(menuClearRecords, TEXT("Clear All Records"), ClearAllRecords, ClearRecordsKey, false);
 	
 
@@ -222,8 +222,10 @@ void commandMenuInit()
 	setCommand(menuCheckUpdate, TEXT("Check for update"), checkUpdate, NULL, false);
 	setCommand(menuAbout, TEXT("About Location Navigate"), ShowAbout, NULL, false);
 
-}
+	//int items[]{menuAutoRecord};
+	//for(auto idx:items) funcItem[idx].flag=1;
 
+}
 
 //
 // Here you can do the clean up (especially for the shortcut)

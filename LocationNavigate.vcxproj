@@ -274,8 +274,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Realeas|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.\DockingFeature;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN64=1;NDEBUG;_WINDOWS;_USRDLL;LocationNavigate_EXPORTS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\DockingFeature;.\;$(PowerEditor)/../plugins/CPPCommon;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN64=1;TBPIsWrapper=0;NDEBUG;_WINDOWS;_USRDLL;LocationNavigate_EXPORTS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
@@ -287,7 +287,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shlwapi.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(DLLOU)</OutputFile>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -341,13 +341,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\CPPCommon\StaticDialog.cpp" />
+    <ClCompile Include="..\..\PowerEditor\src\WinControls\ImageListSet\ImageListSet.cpp" />
+    <ClCompile Include="..\..\PowerEditor\src\WinControls\StaticDialog\StaticDialog.cpp" />
+    <ClCompile Include="..\CPPCommon\common_patch.cpp" />
+    <ClCompile Include="..\CPPCommon\ToolBar.cpp" />
+    <ClCompile Include="..\CPPCommon\ToolbarPanel.cpp" />
     <ClCompile Include="DockingFeature\LNhistoryDlg.cpp" />
     <ClCompile Include="DockingFeature\SelfCtrl.cpp" />
     <ClCompile Include="LocationNavigate.cpp" />
     <ClCompile Include="PluginDefinition.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\CPPCommon\ToolbarPanel.h" />
     <ClInclude Include="DockingFeature\LNhistoryDlg.h" />
     <ClInclude Include="DockingFeature\resource.h" />
     <ClInclude Include="DockingFeature\SelfCtrl.h" />
@@ -358,8 +363,28 @@
     <Image Include="DockingFeature\cnext16.bmp" />
     <Image Include="DockingFeature\cprevious16.bmp" />
     <Image Include="DockingFeature\icon1.ico" />
+    <Image Include="DockingFeature\next.ico" />
+    <Image Include="DockingFeature\next1.ico" />
     <Image Include="DockingFeature\next16.bmp" />
+    <Image Include="DockingFeature\next1_act.ico" />
+    <Image Include="DockingFeature\next1_off.ico" />
+    <Image Include="DockingFeature\next_act.ico" />
+    <Image Include="DockingFeature\next_off.ico" />
+    <Image Include="DockingFeature\prev.ico" />
+    <Image Include="DockingFeature\prev1.ico" />
+    <Image Include="DockingFeature\prev1_act.ico" />
+    <Image Include="DockingFeature\prev1_off.ico" />
     <Image Include="DockingFeature\previous16.bmp" />
+    <Image Include="DockingFeature\prev_act.ico" />
+    <Image Include="DockingFeature\prev_off.ico" />
+    <Image Include="res\bin_empty.bmp" />
+    <Image Include="res\brick_go.bmp" />
+    <Image Include="res\cog.bmp" />
+    <Image Include="res\delete.bmp" />
+    <Image Include="res\down.bmp" />
+    <Image Include="res\page_white_stack.bmp" />
+    <Image Include="res\paste.bmp" />
+    <Image Include="res\up.bmp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DockingFeature\LNhistory.rc" />
