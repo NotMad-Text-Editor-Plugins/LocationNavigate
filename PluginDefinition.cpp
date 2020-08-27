@@ -78,6 +78,8 @@ void pluginCleanUp()
 	::WritePrivateProfileString(sectionName, strMaxList, str, iniFilePath);
 	wsprintf(str,TEXT("%d"),AutoClean?1:0);
 	::WritePrivateProfileString(sectionName, strAutoClean, str, iniFilePath);
+	wsprintf(str,TEXT("%d"),bIsPaused?1:0);
+	::WritePrivateProfileString(sectionName, srtPaused, str, iniFilePath);
 	wsprintf(str,TEXT("%d"),AlwaysRecord?1:0);
 	::WritePrivateProfileString(sectionName, strAlwaysRecord, str, iniFilePath);
 	wsprintf(str,TEXT("%d"),SaveRecord?1:0);
@@ -127,6 +129,7 @@ void commandMenuInit()
 	MaxOffset = ::GetPrivateProfileInt(sectionName, strMaxOffset, 100, iniFilePath);
 	MaxList = ::GetPrivateProfileInt(sectionName, strMaxList, 50, iniFilePath) ;
 	AutoClean = (::GetPrivateProfileInt(sectionName, strAutoClean, 0, iniFilePath)== 1) ;
+	bIsPaused = (::GetPrivateProfileInt(sectionName, srtPaused, 0, iniFilePath)== 1) ;
 	AlwaysRecord = (::GetPrivateProfileInt(sectionName, strAlwaysRecord, 0, iniFilePath)== 1) ;
 	SaveRecord   = (::GetPrivateProfileInt(sectionName, strSaveRecord, 0, iniFilePath)== 1) ;
 	InCurr   = (::GetPrivateProfileInt(sectionName, strInCurr, 0, iniFilePath)== 1) ;
@@ -229,6 +232,7 @@ void commandMenuInit()
 
 	setCommand(menuSkipClosed, TEXT("Skip Closed File"), SkipClosed, NULL, false);
 	setCommand(menuClearOnClose, TEXT("Auto Clear On Close"), FlipAutoClean, NULL, false);
+	setCommand(menuPause, TEXT("Pause"), PauseRecording, NULL, bIsPaused);
 
 
 	setCommand(menuSeparator2, TEXT("-SEPARATOR-"),NULL, NULL, false);
@@ -437,7 +441,10 @@ void FlipAutoClean()
 		::SendMessage( _LNhistory._hAuto, BM_SETCHECK ,(LPARAM)(AutoClean?1:0),0);
 	}
 }
-
+void PauseRecording()
+{
+	FlipCheckMenu(&bIsPaused, menuPause);
+}
 void PinMenu()
 {
 	FlipCheckMenu(&pinMenu, menuPinMenu);

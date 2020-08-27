@@ -56,6 +56,7 @@ enum menuList
 
 	menuSkipClosed,
 	menuClearOnClose,
+	menuPause,
 
 	menuSeparator2,
 	menuPinMenu,
@@ -116,6 +117,7 @@ void LocationNavigateHistoryDlg();
 void AutoRecord();
 void SkipClosed();
 void FlipAutoClean();
+void PauseRecording();
 void ManualRecord();
 void ClearAllRecords();
 void NavigateInCurr();

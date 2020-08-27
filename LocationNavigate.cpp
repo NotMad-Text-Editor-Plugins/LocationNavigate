@@ -21,7 +21,7 @@
 #include <list>
 #include<WinBase.h>
 
-#define UseThread 1
+#define UseThread 0
 
 ////////////////SELF DATA BEGIN///////////
 TCHAR currFile[MAX_PATH]={0};
@@ -156,6 +156,7 @@ void DoFilesCheck()
 }
 void DoModify(int len,int pos)
 {
+	if(bIsPaused) return;
 	// SEARCH in files WILL CHANGE IT
 	//TCHAR buffer[10000];
 	//wsprintf(buffer,TEXT("position=%d,length=%d,%d=%d,%d"),pos,len,notifyCode->nmhdr.idFrom,currBufferID,curScintilla);
@@ -217,6 +218,8 @@ void DoModify(int len,int pos)
 }
 void AddListData(LocationInfo *tmp)
 {
+	if(bIsPaused) return;
+
 	long preLen = LocationList.size();
 
 	if ( LocationPos != preLen-1 && !AlwaysRecord && !PageActive)
@@ -485,7 +488,6 @@ DWORD   WINAPI   ThreadFunc(   LPVOID   lpParam   )
 		//
 		//::SendMessage( hToolbar, TB_ENABLEBUTTON, ( WPARAM )funcItem[menuNext]._cmdID,  MAKELONG( val , 0 ) );
 
-		Sleep(100);
 	}
 	return   0;
 }
@@ -793,6 +795,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			IconID[i] = -1;
 		}
 	}
+
 	switch (code) 
 	{
 		case NPPN_TBMODIFICATION:
@@ -851,6 +854,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuPinMenu]._cmdID, MF_BYCOMMAND | (pinMenu?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuAutoRecord]._cmdID, MF_BYCOMMAND | (bAutoRecord?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuClearOnClose]._cmdID, MF_BYCOMMAND | (AutoClean?MF_CHECKED:MF_UNCHECKED));
+			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuPause]._cmdID, MF_BYCOMMAND | (bIsPaused?MF_CHECKED:MF_UNCHECKED));
 			::EnableMenuItem(::GetMenu(nppData._nppHandle),
 				funcItem[menuManualRecord]._cmdID,MF_BYCOMMAND|(bAutoRecord?MF_GRAYED:MF_ENABLED ));
 
@@ -957,6 +961,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		// mark setting remove to SCN_SAVEPOINTREACHED
 		case NPPN_FILESAVED:
 		{
+			if(bIsPaused) break;
 			int which = -1;
 			::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
 			if (which != -1){
@@ -971,6 +976,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		break;
 		case NPPN_FILEBEFORECLOSE:
 		{
+			if(bIsPaused) break;
 			// 如果是关闭的，那么要进行一个数据备份，用于进行日志的保存
 			// 由于无法判断是否是最终的全部关闭，之前采用比较丑陋的办法，需要设置一个时间，如果超过一定时间无效,启动一个线程
 			// 通过分析，可以通过 modifiers	4924 判断
@@ -993,11 +999,12 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		case NPPN_FILEOPENED:
 		case NPPN_FILECLOSED:
 		{
+			if(bIsPaused) break;
 			isOpenFile = false;
 		// 页面打开或关闭
 			if ( AutoClean )
 			{
-				if(NPPN_FILECLOSED == code) {
+				if(!bIsPaused && NPPN_FILECLOSED == code) {
 					// 只需要告知需要进行文件列表的检查
 					ActionData tmp;
 					tmp.type = ActionClosed;
@@ -1045,6 +1052,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		// 页面切换
 		case NPPN_BUFFERACTIVATED:
 		{
+			//if(bIsPaused) break;
 			//scnNotification->nmhdr.code = NPPN_BUFFERACTIVATED;
 			//scnNotification->nmhdr.hwndFrom = hwndNpp;
 			//scnNotification->nmhdr.idFrom = activatedBufferID;
@@ -1089,6 +1097,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		break;
 		case SCN_MODIFIED:
 		{
+			//if(bIsPaused) break;
 			// 以下事件是多行执行时的信息，如果多行改动会触发，但是效率较低
 			//if(ModifyType == 0x11 || ModifyType == 0x12	// 多行改动如多行缩进等
 			//|| ModifyType == 0xA1	|| ModifyType == 0xA2 // 多行撤销

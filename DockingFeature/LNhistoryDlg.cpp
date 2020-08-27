@@ -233,9 +233,12 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 					{
 						MaxList = val;
 					}
+					//sync here
 					AutoClean = (::SendMessage(_hAuto, BM_GETCHECK,0,0))==1;
 					AlwaysRecord = (::SendMessage(_hAlways, BM_GETCHECK,0,0))==1;
 					SaveRecord  = (::SendMessage(_hSaveRecord, BM_GETCHECK,0,0))==1;
+					bIsPaused  = MF_CHECKED&::GetMenuState( ::GetMenu( nppData._nppHandle ), funcItem[menuPause]._cmdID, MF_BYCOMMAND );
+
 					int preByBookMark = ByBookMark;
 					ByBookMark = (MarkType)::SendMessage(_hBookmark, CB_GETCURSEL,0,0);
 					if ( ByBookMark != preByBookMark)
@@ -424,6 +427,7 @@ bool getMenuItemNeedsKeep(int mid) {
 		case menuSkipClosed:
 		case menuClearOnClose:
 		case menuPinMenu:
+		case menuPause:
 		return true;
 	}
 	return false;
@@ -445,6 +449,8 @@ bool getMenuItemChecked(int mid) {
 			return pinMenu;
 		case menuClearOnClose:
 			return AutoClean;
+		case menuPause:
+			return bIsPaused;
 	}
 	return false;
 }
@@ -516,6 +522,7 @@ bool SaveRecord = false;
 bool InCurr = false;
 bool skipClosed = false;
 bool pinMenu = false;
+bool bIsPaused = false;
 bool bAutoRecord = true;
 bool NeedMark = false;
 MarkType ByBookMark = MarkHightLight;
