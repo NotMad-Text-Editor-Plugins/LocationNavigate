@@ -115,6 +115,7 @@ void NextChangedLocation();
 void LocationNavigateHistoryDlg();
 void AutoRecord();
 void SkipClosed();
+void FlipAutoClean();
 void ManualRecord();
 void ClearAllRecords();
 void NavigateInCurr();

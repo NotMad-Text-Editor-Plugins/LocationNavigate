@@ -228,7 +228,7 @@ void commandMenuInit()
 	setCommand(menuSeparator1, TEXT("-SEPARATOR-"),NULL, NULL, false);
 
 	setCommand(menuSkipClosed, TEXT("Skip Closed File"), SkipClosed, NULL, false);
-	setCommand(menuClearOnClose, TEXT("Auto clear when close"), MarkChange, markKey, false);
+	setCommand(menuClearOnClose, TEXT("Auto Clear On Close"), FlipAutoClean, NULL, false);
 
 
 	setCommand(menuSeparator2, TEXT("-SEPARATOR-"),NULL, NULL, false);
@@ -427,6 +427,15 @@ void ClearAllRecords()
 void SkipClosed()
 {
 	FlipCheckMenu(&skipClosed, menuSkipClosed);
+}
+void FlipAutoClean()
+{
+	FlipCheckMenu(&AutoClean, menuClearOnClose);
+	// 刷新配置界面
+	if ( _LNhistory.isCreated() )
+	{
+		::SendMessage( _LNhistory._hAuto, BM_SETCHECK ,(LPARAM)(AutoClean?1:0),0);
+	}
 }
 
 void PinMenu()
