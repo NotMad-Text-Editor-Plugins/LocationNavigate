@@ -423,6 +423,7 @@ bool getMenuItemNeedsKeep(int mid) {
 		case menuNeedMark:
 		case menuSkipClosed:
 		case menuClearOnClose:
+		case menuPinMenu:
 		return true;
 	}
 	return false;
@@ -440,13 +441,15 @@ bool getMenuItemChecked(int mid) {
 			return NeedMark;
 		case menuSkipClosed:
 			return skipClosed;
+		case menuPinMenu:
+			return pinMenu;
 		case menuClearOnClose:
 			return AutoClean;
 	}
 	return false;
 }
 
-void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf, bool pinDlg){
+void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf){
 	int cmd = TrackPopupMenu(pluginMenu, TPM_RETURNCMD, rc->left,  rc->top+toolbarHeight, 0, _hSelf, NULL);
 
 	TCHAR buffer[100]={0};
@@ -457,8 +460,8 @@ void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf, bool pinDlg){
 		for(int idx=0;idx<nbFunc;idx++) {
 			if(funcItem[idx]._cmdID==cmd) {
 				funcItem[idx]._pFunc();
-				if(pinDlg && getMenuItemNeedsKeep(idx)) {
-					simulToolbarMenu(pluginMenu, rc, _hSelf, pinDlg);
+				if(pinMenu && getMenuItemNeedsKeep(idx) || idx==nbFunc-2) {
+					simulToolbarMenu(pluginMenu, rc, _hSelf);
 				}
 			}
 		}
@@ -473,10 +476,7 @@ void LocationNavigateDlg::OnToolBarCommand( UINT Cmd )
 
 			HMENU pluginMenu = (HMENU)::SendMessage(nppData._nppHandle, NPPM_GETPLUGININFO, 0 , (LPARAM)text);
 
-			bool pinDlg=1;
-
 			if(!pluginMenu) {
-				pinDlg=0;
 				//::MessageBox(NULL, TEXT("111"), TEXT(""), MB_OK);
 				pluginMenu = ::CreatePopupMenu();
 				unsigned short j = 0;
@@ -496,7 +496,7 @@ void LocationNavigateDlg::OnToolBarCommand( UINT Cmd )
 
 			RECT rc;
 			GetWindowRect(_hSelf, &rc);
-			simulToolbarMenu(pluginMenu, &rc, _hSelf, pinDlg);
+			simulToolbarMenu(pluginMenu, &rc, _hSelf);
 		return;
 	}
 }
@@ -515,6 +515,7 @@ bool AlwaysRecord=false;
 bool SaveRecord = false;
 bool InCurr = false;
 bool skipClosed = false;
+bool pinMenu = false;
 bool bAutoRecord = true;
 bool NeedMark = false;
 MarkType ByBookMark = MarkHightLight;

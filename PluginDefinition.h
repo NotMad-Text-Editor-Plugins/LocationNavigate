@@ -120,7 +120,7 @@ void ClearAllRecords();
 void NavigateInCurr();
 void MarkChange();
 void ShowAbout();
-void pinMenu();
+void PinMenu();
 
 extern toolbarIcons		g_TBPrevious;
 extern toolbarIcons		g_TBNext;

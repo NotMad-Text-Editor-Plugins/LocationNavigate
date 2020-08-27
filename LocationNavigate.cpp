@@ -848,6 +848,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			// 刷新菜单
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuInCurr]._cmdID, MF_BYCOMMAND | (InCurr?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuSkipClosed]._cmdID, MF_BYCOMMAND | (skipClosed?MF_CHECKED:MF_UNCHECKED));
+			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuPinMenu]._cmdID, MF_BYCOMMAND | (pinMenu?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuAutoRecord]._cmdID, MF_BYCOMMAND | (bAutoRecord?MF_CHECKED:MF_UNCHECKED));
 			::EnableMenuItem(::GetMenu(nppData._nppHandle),
 				funcItem[menuManualRecord]._cmdID,MF_BYCOMMAND|(bAutoRecord?MF_GRAYED:MF_ENABLED ));

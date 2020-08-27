@@ -86,6 +86,8 @@ void pluginCleanUp()
 	::WritePrivateProfileString(sectionName, strInCurr, str, iniFilePath);
 	wsprintf(str,TEXT("%d"),skipClosed?1:0);
 	::WritePrivateProfileString(sectionName, strSkipClosed, str, iniFilePath);
+	wsprintf(str,TEXT("%d"),pinMenu?1:0);
+	::WritePrivateProfileString(sectionName, strPinMenu, str, iniFilePath);
 	wsprintf(str,TEXT("%d"),bAutoRecord?1:0);
 	::WritePrivateProfileString(sectionName, strAutoRecord, str, iniFilePath);
 	
@@ -129,6 +131,7 @@ void commandMenuInit()
 	SaveRecord   = (::GetPrivateProfileInt(sectionName, strSaveRecord, 0, iniFilePath)== 1) ;
 	InCurr   = (::GetPrivateProfileInt(sectionName, strInCurr, 0, iniFilePath)== 1) ;
 	skipClosed   = (::GetPrivateProfileInt(sectionName, strSkipClosed, 0, iniFilePath)== 1) ;
+	pinMenu   = (::GetPrivateProfileInt(sectionName, strPinMenu, 0, iniFilePath)== 1) ;
 	bAutoRecord   = (::GetPrivateProfileInt(sectionName, strAutoRecord, 1, iniFilePath)== 1) ;
 	NeedMark = (::GetPrivateProfileInt(sectionName, strNeedMark, 1, iniFilePath)== 1) ;
 	ByBookMark = (MarkType)::GetPrivateProfileInt(sectionName, strByBookMark, 0, iniFilePath);
@@ -229,7 +232,7 @@ void commandMenuInit()
 
 
 	setCommand(menuSeparator2, TEXT("-SEPARATOR-"),NULL, NULL, false);
-	setCommand(menuPinMenu, TEXT("Pin menu"), pinMenu, NULL, false);
+	setCommand(menuPinMenu, TEXT("Pin Menu"), PinMenu, NULL, false);
 	setCommand(menuAbout, TEXT("About Location Navigate"), ShowAbout, NULL, false);
 
 	//int items[]{menuAutoRecord};
@@ -397,15 +400,19 @@ void NextChangedLocation()
 		}
 	}
 }
+
+void FlipCheckMenu(bool *val, int mid) {
+	*val = !*val;
+	::CheckMenuItem(::GetMenu(nppData._nppHandle), 
+		funcItem[mid]._cmdID, MF_BYCOMMAND | (*val?MF_CHECKED:MF_UNCHECKED));
+}
+
 void AutoRecord()
 {
-	//
-	bAutoRecord = !bAutoRecord;
 	// 刷新菜单
-	::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuAutoRecord]._cmdID, MF_BYCOMMAND | (bAutoRecord?MF_CHECKED:MF_UNCHECKED));
+	FlipCheckMenu(&bAutoRecord, menuAutoRecord);
 	::EnableMenuItem(::GetMenu(nppData._nppHandle),
 		funcItem[menuManualRecord]._cmdID,MF_BYCOMMAND|(bAutoRecord?MF_GRAYED:MF_ENABLED ));
-
 }
 void ManualRecord()
 {
@@ -419,17 +426,16 @@ void ClearAllRecords()
 }
 void SkipClosed()
 {
-	skipClosed = !skipClosed;
-	::CheckMenuItem(::GetMenu(nppData._nppHandle),
-		funcItem[menuSkipClosed]._cmdID, MF_BYCOMMAND | (skipClosed?MF_CHECKED:MF_UNCHECKED));
+	FlipCheckMenu(&skipClosed, menuSkipClosed);
 }
 
+void PinMenu()
+{
+	FlipCheckMenu(&pinMenu, menuPinMenu);
+}
 void NavigateInCurr()
 {
-	InCurr = !InCurr;
-	// 刷新菜单
-	::CheckMenuItem(::GetMenu(nppData._nppHandle),
-		funcItem[menuInCurr]._cmdID, MF_BYCOMMAND | (InCurr?MF_CHECKED:MF_UNCHECKED));
+	FlipCheckMenu(&InCurr, menuInCurr);
 	// 刷新配置界面
 	_LNhistory.refreshDlg();
 	if ( _LNhistory.isCreated() )
@@ -439,10 +445,7 @@ void NavigateInCurr()
 }
 void MarkChange()
 {
-	NeedMark = !NeedMark;
-	// 刷新菜单
-	::CheckMenuItem(::GetMenu(nppData._nppHandle), 
-		funcItem[menuNeedMark]._cmdID, MF_BYCOMMAND | (NeedMark?MF_CHECKED:MF_UNCHECKED));
+	FlipCheckMenu(&NeedMark, menuNeedMark);
 	// 刷新配置界面
 	if ( _LNhistory.isCreated() )
 	{
@@ -502,8 +505,4 @@ void LocationNavigateHistoryDlg()
 void ShowAbout()
 {
 	::MessageBox(nppData._nppHandle, TEXT(" You can use Ctrl+ - jump to previous cursor position \n You can use Ctrl+Shift+ - jump to next cursor position \n You can use Ctrl+Alt+ Z jump to previous changed position \n You can use Ctrl+Alt+ Y jump to next changed position \n 'Auto clear when close'- Will remove the file's record when file closed.\n 'Always record'- Will always record the position even after you jumped.\n 'Save record when App exit'- Record data when application exit and it will be loaded in next run \n 'In Curr'- If checked, navigate only in current file\n 'Mark'- If checked, modified line will be marked by bookmark or color\n 'Mark Color/Save Color'- Available if not select mark with bookmark, you could mark with different symbol.  \n\n Version: 0.4.7.7   Author: Austin Young<pattazl@gmail.com>"), TEXT("About Location Navigate"), MB_OK);
-}
-void pinMenu()
-{
-	ShellExecute(NULL, TEXT("open"),TEXT("http://sourceforge.net/projects/locationnav/files"), NULL, NULL, SW_SHOW);
 }
