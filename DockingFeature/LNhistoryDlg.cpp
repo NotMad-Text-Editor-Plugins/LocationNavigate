@@ -291,13 +291,14 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 			// 首先需要检查 结构是否改变过
 			// 读取变量刷新到页面
 			//LockWindowUpdate(_hListBox) ;
+			int LocationSize=LocationList.size()-1;
 			if(lParam) {
 				ZeroMemory(strHint, 500);
 				::SendMessage( _hListBox, LB_RESETCONTENT, 0, 0 );
 				bool ShowFNOnly=1;
 				bool ShowLNRT=true;
 				//::MessageBox(NULL,TEXT("111") , TEXT(""), MB_OK);%d,,LocationList[i].bufferID
-				for ( int i=0;i<LocationList.size();i++ )
+				for ( int i=0;i<=LocationSize;i++ )
 				{
 					if(ShowFNOnly) {
 						int len=lstrlen(LocationList[i].FilePath);
@@ -316,9 +317,12 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 
 					::SendMessage( _hListBox, LB_ADDSTRING, 0, (LPARAM)strHint );
 				}
+			} else {
+				::SendMessage( _hListBox, LB_SETSEL, 0, -1);
 			}
 			// 设置当前点
-			::SendMessage( _hListBox, LB_SETCURSEL, LocationPos, 0);
+			//::SendMessage( _hListBox, LB_SETCURSEL, LocationPos, 0);
+			::SendMessage( _hListBox, LB_SETSEL, 1, LocationPos);
 			//refreshValue();
 		}
 		break;
@@ -496,7 +500,7 @@ void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf, bool recreate){
 		for(int idx=0;idx<nbFunc;idx++) {
 			if(funcItem[idx]._cmdID==cmd) {
 				funcItem[idx]._pFunc();
-				if(pinMenu && getMenuItemNeedsKeep(idx) || idx==nbFunc-2) {
+				if(pinMenu && getMenuItemNeedsKeep(idx) /*|| idx==nbFunc-2*/) {
 					if(recreate) {
 						TrackPopup(_hSelf);
 					} else {

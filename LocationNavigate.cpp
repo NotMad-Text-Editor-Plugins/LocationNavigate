@@ -23,7 +23,7 @@
 #include <set>  
 #include "Scintilla.h"
 
-#define UseThread 1
+#define UseThread 0
 
 struct ptrCmp
 {
