@@ -71,6 +71,7 @@ void pluginInit(HANDLE hModule)
 void pluginCleanUp()
 {
 	//DeleteCriticalSection(&criCounter);
+	//if(1) return;
 	TCHAR str[500]={0};	
 	wsprintf(str,TEXT("%d"),MaxOffset);
 	::WritePrivateProfileString(sectionName, strMaxOffset,str , iniFilePath);

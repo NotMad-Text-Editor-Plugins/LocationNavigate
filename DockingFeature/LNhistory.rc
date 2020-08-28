@@ -1,6 +1,5 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include <windows.h>
 #include "resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
@@ -8,26 +7,24 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-//#include "afxres.h"
+#include "afxres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 中文(中华人民共和国) resources
+// Chinese (Simplified, PRC) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
-#ifdef _WIN32
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 #pragma code_page(936)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-IDD_LOCATIONNAVIGATE DIALOGEX 26, 41, 369, 264
+IDD_LOCATIONNAVIGATE DIALOGEX 26, 41, 515, 267
 STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW | WS_EX_WINDOWEDGE
 CAPTION "Location History"
@@ -35,16 +32,17 @@ FONT 8, "MS Sans Serif", 400, 0, 0x0
 BEGIN
     CONTROL         "Offset(2-5000)",ID_UGO_STATIC,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,72,202,84,8
     EDITTEXT        ID_LNHISTORY_EDIT,154,199,30,12,ES_NUMBER
-    DEFPUSHBUTTON   "&Go",IDOK,4,204,23,14,BS_NOTIFY
-    LISTBOX         IDC_LOC_LIST,0,7,369,125,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "&Go",IDOK,4,239,23,14,BS_NOTIFY
+    LISTBOX         IDC_LOC_LIST,0,7,515,125,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Limit(5-300)",ID_UGO_STATIC2,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,75,220,84,8
     EDITTEXT        ID_LNHISTORY_EDIT2,155,217,30,12,ES_NUMBER
-    LTEXT           " If position changed more than position offset, will record.\n If record count touch history limit, will pop from front.",IDC_STATIC_ABOUT,186,175,177,33
-    CONTROL         "Auto clear when close",IDC_CHECK_AUTO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,81,250,100,10
+    CONTROL         "Record when position changed more than the offset. Pop If total count reachs limit.",IDC_STATIC_ABOUT,
+                    "Static",SS_LEFTNOWORDWRAP | WS_GROUP,0,146,450,33
+    CONTROL         "Auto clear when close",IDC_CHECK_AUTO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,81,253,100,10
     PUSHBUTTON      "ClearAll",IDC_BUTTON_CLEAR,284,239,50,14,BS_NOTIFY
-    CONTROL         "Always record",IDC_CHECK_ALWAYS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,187,251,68,10
+    CONTROL         "Always record",IDC_CHECK_ALWAYS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,187,253,68,10
     CONTROL         "Save record when App exit",IDC_CHECK_SAVERECORD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,77,238,116,10
-    CONTROL         "&In Curr",IDC_CHECK_INCURR,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP,1,243,44,10
+    CONTROL         "&In Curr",IDC_CHECK_INCURR,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP,1,205,44,10
     CONTROL         "&Mark",IDC_CHECK_MARK,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP,1,223,32,10
     LTEXT           "Mark Color",ID_STATIC_COLOR,211,213,40,10
     COMBOBOX        IDC_CHECK_BOOKMARK,263,207,45,43,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
@@ -65,12 +63,12 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
-    "\r\n"
+    "\r\0"
 END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include ""afxres.h""\r\n"
+    "#include ""afxres.h""\r\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -82,11 +80,12 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_LOCATIONNAVIGATE, DIALOG
     BEGIN
-        BOTTOMMARGIN, 260
+        RIGHTMARGIN, 369
+        BOTTOMMARGIN, 263
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -114,6 +113,7 @@ IDB_EX_DELETE           BITMAP                  "..\\res\\delete.bmp"
 IDB_EX_DELETE_ALL       BITMAP                  "..\\res\\bin_empty.bmp"
 
 IDB_EX_OPTIONS          BITMAP                  "..\\res\\cog.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -162,20 +162,43 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_ICON1               ICON                    "icon1.ico"
-IDI_ICON_NEXT ICON DISCARDABLE "next.ico"
-IDI_ICON_PREV ICON DISCARDABLE "prev.ico"
-IDI_ICON_NEXT1 ICON DISCARDABLE "next1.ico"
-IDI_ICON_PREV1 ICON DISCARDABLE "prev1.ico"
-IDI_ICON_PREV1_ACT ICON DISCARDABLE "prev1_act.ico"
-IDI_ICON_PREV1_OFF ICON DISCARDABLE "prev1_off.ico"
-IDI_ICON_PREV_ACT ICON DISCARDABLE "prev_act.ico"
-IDI_ICON_PREV_OFF ICON DISCARDABLE "prev_off.ico"
-IDI_ICON_NEXT1_ACT ICON DISCARDABLE "next1_act.ico"
-IDI_ICON_NEXT1_OFF ICON DISCARDABLE "next1_off.ico"
-IDI_ICON_NEXT_ACT ICON DISCARDABLE "next_act.ico"
-IDI_ICON_NEXT_OFF ICON DISCARDABLE "next_off.ico"
 
-#endif    // 中文(中华人民共和国) resources
+IDI_ICON_NEXT           ICON                    "next.ico"
+
+IDI_ICON_PREV           ICON                    "prev.ico"
+
+IDI_ICON_NEXT1          ICON                    "next1.ico"
+
+IDI_ICON_PREV1          ICON                    "prev1.ico"
+
+IDI_ICON_PREV1_ACT      ICON                    "prev1_act.ico"
+
+IDI_ICON_PREV1_OFF      ICON                    "prev1_off.ico"
+
+IDI_ICON_PREV_ACT       ICON                    "prev_act.ico"
+
+IDI_ICON_PREV_OFF       ICON                    "prev_off.ico"
+
+IDI_ICON_NEXT1_ACT      ICON                    "next1_act.ico"
+
+IDI_ICON_NEXT1_OFF      ICON                    "next1_off.ico"
+
+IDI_ICON_NEXT_ACT       ICON                    "next_act.ico"
+
+IDI_ICON_NEXT_OFF       ICON                    "next_off.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_LOCATIONNAVIGATE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+#endif    // Chinese (Simplified, PRC) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

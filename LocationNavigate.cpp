@@ -19,7 +19,8 @@
 #include <tchar.h>
 #include "LNhistoryDlg.h"
 #include <list>
-#include<WinBase.h>
+#include <WinBase.h>
+#include "Scintilla.h"
 
 #define UseThread 0
 
@@ -71,6 +72,59 @@ extern NppData nppData;
 extern HANDLE				g_hModule;
 
 extern LocationNavigateDlg _LNhistory;
+
+
+int PrevSelStart=-1, PrevSelEnd=-1;
+
+void getTextSelection(int& start, int& end) {
+	// Get active scintilla
+	int currentEdit;
+	::SendMessage( nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM) &currentEdit );
+	auto activeVanilla = currentEdit?nppData._scintillaSecondHandle:nppData._scintillaMainHandle;
+	start = SendMessage(activeVanilla, SCI_GETSELECTIONSTART, 0, 0);
+	end = SendMessage(activeVanilla, SCI_GETSELECTIONEND, 0, 0);
+}
+
+bool IsSelectionOverlapping( const int CurrSelStart, const int CurrSelEnd )
+{
+	if(1) return 0;
+
+	if ( CurrSelStart == CurrSelEnd )
+	{
+		// No text selected now, must be no overlapping
+		return false;
+	}
+
+	if ( PrevSelStart == PrevSelEnd )
+	{
+		// Previously no text selected, no overlapping possible
+		return false;
+	}
+
+	//if ( PrevSelStart == CurrSelStart && PrevSelEnd == CurrSelEnd )
+	//{
+	//	// Optimisation: if same region selected, then don't copy text as it has already been copied
+	//	return false;
+	//}
+	//
+	//// This test catches "underlaps" as well as overlaps
+	//if ( CurrSelStart <= PrevSelEnd && CurrSelEnd >= PrevSelStart )
+	//{
+	//	return true;
+	//}
+
+	// Finally, there's no overlapping
+	return CurrSelStart==PrevSelStart||CurrSelEnd==PrevSelStart||CurrSelStart==PrevSelEnd||CurrSelEnd==PrevSelEnd;
+}
+
+bool IsSelectionOverlapping() {
+	int CurrSelStart = -1, CurrSelEnd = -1;
+	getTextSelection(CurrSelStart, CurrSelEnd);
+	bool ret = IsSelectionOverlapping(CurrSelStart, CurrSelEnd);
+	PrevSelStart = CurrSelStart;
+	PrevSelEnd   = CurrSelEnd;
+	return ret;
+}
 
 #define NEWFILE TEXT("new  1")
 /////////// SELF FUNCTION BEGIN //////
@@ -216,11 +270,30 @@ void DoModify(int len,int pos)
 		}
 	}
 }
+
+static bool ThreadNeedRefresh = false;
+
 void AddListData(LocationInfo *tmp)
 {
 	if(bIsPaused) return;
 
 	long preLen = LocationList.size();
+
+	if(preLen && IsSelectionOverlapping()) {
+		if(LocationList[preLen-1].bufferID == (*tmp).bufferID) {
+			if(LocationList[preLen-1].position!=(*tmp).position) {
+				LocationList[preLen-1].position=(*tmp).position;
+				ThreadNeedRefresh = true;
+			}
+			return;
+		}
+	}
+
+	TCHAR buffer[100]={0};
+	wsprintf(buffer,TEXT("getHasSelectedText=%d"), IsSelectionOverlapping());
+	//::MessageBox(NULL, buffer, TEXT(""), MB_OK);
+
+
 
 	if ( LocationPos != preLen-1 && !AlwaysRecord && !PageActive)
 	{
@@ -404,8 +477,6 @@ void InitBookmark()
 	}
 }
 
-static bool ThreadNeedRefresh = false;
-
 void processNavActions() {
 	while ( !ActionDataList.empty())
 	{
@@ -414,43 +485,36 @@ void processNavActions() {
 			ThreadNeedRefresh = true;
 		}
 		ActionData tmpAct = ActionDataList.front();
-		switch( tmpAct.type )
-		{
-		case ActionModify :
-			// 修改的
-			DoModify(tmpAct.length,tmpAct.position);
-			break;
-		case ActionActive :
-		{
-			// 页面激活，将全局变量赋值
-			currBufferID =  currTmpBufferID;
-			lstrcpy(currFile,currTmpFile);
-			// 需要更新全部 bufferID=0的值
-			for (int i=0;i<LocationList.size();i++ )
-			{
-				if ( LocationList[i].bufferID == 0 && lstrcmp( LocationList[i].FilePath,currFile) == 0 )
-				{
-					LocationList[i].bufferID = currBufferID;
+		switch( tmpAct.type ) {
+			case ActionModify : {
+				DoModify(tmpAct.length,tmpAct.position); // 修改
+			} break;
+			case ActionActive : {
+				// 页面激活，将全局变量赋值
+				currBufferID =  currTmpBufferID;
+				lstrcpy(currFile,currTmpFile);
+				// 需要更新全部 bufferID=0的值
+				for (int i=0;i<LocationList.size();i++ ) {
+					if ( LocationList[i].bufferID == 0 
+						&& lstrcmp( LocationList[i].FilePath,currFile) == 0 ) {
+						LocationList[i].bufferID = currBufferID;
+					}
 				}
-			}
-			InitBookmark();
-		}
-		break;
-		case ActionClosed :
-			// 进行列表检查
-			DoFilesCheck();
-			break;
-		case ActionLocation :
-		{
-			// 进行定位
-			LocationInfo tmp;
-			tmp.position = tmpAct.position;
-			tmp.bufferID = currBufferID;
-			tmp.changed =  tmpAct.changed;
-			lstrcpy(tmp.FilePath,currFile);
-			AddListData(&tmp);
-		}
-		break;
+				InitBookmark();
+			} break;
+			case ActionClosed : {
+				// 进行列表检查
+				DoFilesCheck();
+			} break;
+			case ActionLocation : {
+				// 进行定位
+				LocationInfo tmp;
+				tmp.position = tmpAct.position;
+				tmp.bufferID = currBufferID;
+				tmp.changed =  tmpAct.changed;
+				lstrcpy(tmp.FilePath,currFile);
+				AddListData(&tmp);
+			} break;
 		}
 		ActionDataList.pop_front();
 	}
@@ -804,6 +868,8 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		case NPPN_SHUTDOWN:
 		{
 			commandMenuCleanUp();
+			//bIsPaused=1;
+			//AllCloseFlag=1;
 		}
 		break;
 		case NPPN_READY:
@@ -944,8 +1010,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 #if UseThread
 			// 不能启用线程，会引起关闭时崩溃
 			DWORD   dwThreadId,   dwThrdParam   =   1;
-			HANDLE   hThread;
-			hThread=::CreateThread(
+			HANDLE   hThread = ::CreateThread(
 				NULL, //   no   security   attributes  
 				0,//   use   default   stack   size    
 				ThreadFunc,//   thread   function  
@@ -1052,6 +1117,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		// 页面切换
 		case NPPN_BUFFERACTIVATED:
 		{
+			PrevSelStart=PrevSelStart=-1;
 			//if(bIsPaused) break;
 			//scnNotification->nmhdr.code = NPPN_BUFFERACTIVATED;
 			//scnNotification->nmhdr.hwndFrom = hwndNpp;

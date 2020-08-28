@@ -373,18 +373,18 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 				::MoveWindow(_hUG_T2, rc.left+60, rc.bottom-42, 70, 18, TRUE);
 				::MoveWindow(_hUG_E2, rc.left+135, rc.bottom-45, 40, 18, TRUE);
 
-				::MoveWindow(_hUG_OK, rc.left+10, rc.bottom-65, 40,18, TRUE);
+				::MoveWindow(_hInCurr, rc.left+10, rc.bottom-65, 40,18, TRUE);
 				::MoveWindow(_hMark, rc.left+10, rc.bottom-45, 40,18, TRUE);
 
 				
-				::MoveWindow(_hABOUT, rc.left+185, rc.bottom-65, 400,36, TRUE);
+				::MoveWindow(_hABOUT, rc.left+185, rc.bottom-65, 500,36, TRUE);
 				::MoveWindow(_hClear, rc.left+180, rc.bottom-38, 40,14, TRUE);
 
 				::MoveWindow(_hColor,  rc.left+225, rc.bottom-38, 60,16, TRUE);
 				::MoveWindow(_hSaveColor,  rc.left+285, rc.bottom-38, 60,16, TRUE);
 				::MoveWindow( _hAuto ,  rc.left+350, rc.bottom-38, 130,16, TRUE);
 
-				::MoveWindow(_hInCurr, rc.left+10, rc.bottom-22, 40,18, TRUE);
+				::MoveWindow(_hUG_OK, rc.left+10, rc.bottom-22, 40,18, TRUE);
 				::MoveWindow(_hSaveRecord, rc.left+60, rc.bottom-22, 150,18, TRUE);
 				::MoveWindow( _hBookmark,  rc.left+220, rc.bottom-22, 120,16, TRUE);
 				::MoveWindow(_hAlways,  rc.left+350, rc.bottom-22, 90,16, TRUE);
@@ -455,7 +455,9 @@ bool getMenuItemChecked(int mid) {
 	return false;
 }
 
-void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf){
+void TrackPopup(HWND _hSelf);
+
+void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf, bool recreate){
 	int cmd = TrackPopupMenu(pluginMenu, TPM_RETURNCMD, rc->left,  rc->top+toolbarHeight, 0, _hSelf, NULL);
 
 	TCHAR buffer[100]={0};
@@ -467,42 +469,72 @@ void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf){
 			if(funcItem[idx]._cmdID==cmd) {
 				funcItem[idx]._pFunc();
 				if(pinMenu && getMenuItemNeedsKeep(idx) || idx==nbFunc-2) {
-					simulToolbarMenu(pluginMenu, rc, _hSelf);
+					if(recreate) {
+						TrackPopup(_hSelf);
+					} else {
+						simulToolbarMenu(pluginMenu, rc, _hSelf, recreate);
+					}
 				}
 			}
 		}
 	}
 }
 
+TCHAR *moduleFileName;
+extern HANDLE				g_hModule;
+
+void TrackPopup(HWND _hSelf) {
+	if(!moduleFileName) {
+		moduleFileName = new TCHAR[MAX_PATH];
+		int len = GetModuleFileName((HMODULE)g_hModule, moduleFileName, MAX_PATH);
+		int offset=0;
+		if(len>=0) {
+			int i=len-1;
+			for(;i>=0;i--) {
+				if(moduleFileName[i]=='\\') {
+					moduleFileName+=i+1;
+					break;
+				}
+			}
+		}
+	}
+
+	HMENU pluginMenu = (HMENU)::SendMessage(nppData._nppHandle, NPPM_GETPLUGINMENU, 0 , (LPARAM)moduleFileName);
+
+	bool recreate=false;
+
+	if(!pluginMenu) {
+		//pluginMenu = (HMENU)::GetMenu(nppData._nppHandle);
+		if(!pluginMenu) {
+
+			//::MessageBox(NULL, TEXT("111"), TEXT(""), MB_OK);
+			pluginMenu = ::CreatePopupMenu();
+			unsigned short j = 0;
+			for ( ; j < nbFunc ; ++j)
+			{
+				if (funcItem[j]._pFunc == NULL)
+				{
+					::InsertMenu(pluginMenu, j, MF_BYPOSITION | MF_SEPARATOR, 0, TEXT(""));
+					continue;
+				}
+				generic_string itemName = funcItem[j]._itemName;
+				::InsertMenu(pluginMenu, j, MF_BYPOSITION, funcItem[j]._cmdID, itemName.c_str());
+				if (getMenuItemChecked(j))
+					::CheckMenuItem(pluginMenu, funcItem[j]._cmdID, MF_BYCOMMAND | MF_CHECKED);
+			}
+			recreate = true;
+		}
+	}
+	RECT rc;
+	GetWindowRect(_hSelf, &rc);
+	simulToolbarMenu(pluginMenu, &rc, _hSelf, recreate);
+}
+
 void LocationNavigateDlg::OnToolBarCommand( UINT Cmd )
 {
 	switch ( Cmd ) {
 		case IDM_EX_OPTIONS:
-			TCHAR text[]=_T("LocationNavigate.dll");
-
-			HMENU pluginMenu = (HMENU)::SendMessage(nppData._nppHandle, NPPM_GETPLUGININFO, 0 , (LPARAM)text);
-
-			if(!pluginMenu) {
-				//::MessageBox(NULL, TEXT("111"), TEXT(""), MB_OK);
-				pluginMenu = ::CreatePopupMenu();
-				unsigned short j = 0;
-				for ( ; j < nbFunc ; ++j)
-				{
-					if (funcItem[j]._pFunc == NULL)
-					{
-						::InsertMenu(pluginMenu, j, MF_BYPOSITION | MF_SEPARATOR, 0, TEXT(""));
-						continue;
-					}
-					generic_string itemName = funcItem[j]._itemName;
-					::InsertMenu(pluginMenu, j, MF_BYPOSITION, funcItem[j]._cmdID, itemName.c_str());
-					if (getMenuItemChecked(j))
-						::CheckMenuItem(pluginMenu, funcItem[j]._cmdID, MF_BYCOMMAND | MF_CHECKED);
-				}
-			}
-
-			RECT rc;
-			GetWindowRect(_hSelf, &rc);
-			simulToolbarMenu(pluginMenu, &rc, _hSelf);
+			TrackPopup(_hSelf);
 		return;
 	}
 }
