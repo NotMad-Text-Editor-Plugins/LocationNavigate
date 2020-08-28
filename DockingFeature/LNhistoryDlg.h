@@ -36,6 +36,7 @@ struct LocationInfo
 	//long col;
 	long position;// 文档中的位置
 	long bufferID;// 文档编号
+	//TCHAR FilePath[MAX_PATH];
 	TCHAR* FilePath;
 	bool changed; // 是否修改过
 };

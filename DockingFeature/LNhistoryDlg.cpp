@@ -159,10 +159,6 @@ bool SetPosByIndex(int delta, bool doit)
 	{
 		PositionSetting = false;
 	}
-
-	TCHAR buffer[100]={0};
-	wsprintf(buffer,TEXT("strID=%d"), LocationList[LocationPos].FilePath);
-	::MessageBox(NULL, buffer, TEXT(""), MB_OK);
 	
 	return true;
 }
@@ -181,6 +177,8 @@ ToolBarButtonUnit ListBoxToolBarButtons[] = {
 int toolbarHeight=28;
 
 int BufferIdBeforeClick=0;
+
+TCHAR strHint[500]={0};
 
 INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -294,15 +292,14 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 			// 读取变量刷新到页面
 			//LockWindowUpdate(_hListBox) ;
 			if(lParam) {
-				TCHAR strHint[500]={0};
+				ZeroMemory(strHint, 500);
 				::SendMessage( _hListBox, LB_RESETCONTENT, 0, 0 );
-				bool ShowOnlyFN=true;
+				bool ShowFNOnly=1;
 				bool ShowLNRT=true;
 				//::MessageBox(NULL,TEXT("111") , TEXT(""), MB_OK);%d,,LocationList[i].bufferID
 				for ( int i=0;i<LocationList.size();i++ )
 				{
-					if(ShowOnlyFN) {
-						//int len=sizeof(LocationList[i].FilePath)/sizeof(TCHAR);
+					if(ShowFNOnly) {
 						int len=lstrlen(LocationList[i].FilePath);
 						TCHAR *strAddr = LocationList[i].FilePath;
 						for(int j=len-1;j>=0;j--) {
@@ -312,6 +309,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 							}
 						}
 						wsprintf(strHint,LocationList[i].changed?TEXT("%s * : (%d)"):TEXT("%s : (%d)"), strAddr, LocationList[i].position+1);
+						//wsprintf(strHint,TEXT("%s * : (%d) (%d)"), strAddr, LocationList[i].FilePath, LocationList[i].FilePath);
 					} else {
 						wsprintf(strHint,TEXT("%c,%d,%s"),LocationList[i].changed?'!':'=',LocationList[i].position+1, LocationList[i].FilePath);
 					}

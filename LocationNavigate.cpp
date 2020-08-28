@@ -20,9 +20,19 @@
 #include "LNhistoryDlg.h"
 #include <list>
 #include <WinBase.h>
+#include <set>  
 #include "Scintilla.h"
 
-#define UseThread 0
+#define UseThread 1
+
+struct ptrCmp
+{
+	bool operator()( const TCHAR * s1, const TCHAR * s2 ) const
+	{
+		return lstrcmp( s1, s2 ) < 0;
+	}
+};
+set<TCHAR *, ptrCmp> filename_tabel;
 
 ////////////////SELF DATA BEGIN///////////
 TCHAR currFile[MAX_PATH]={0};
@@ -489,6 +499,7 @@ void processNavActions() {
 					}
 				}
 				//::MessageBox(NULL, TEXT("ActionActive"), TEXT(""), MB_OK);
+
 				InitBookmark();
 			} break;
 			case ActionClosed : {
@@ -501,7 +512,19 @@ void processNavActions() {
 				tmp.position = tmpAct.position;
 				tmp.bufferID = currBufferID;
 				tmp.changed =  tmpAct.changed;
-				lstrcpy(tmp.FilePath,currFile);
+				//tmp.FilePath = new TCHAR[MAX_PATH];
+				TCHAR * fileName;
+				auto it = filename_tabel.find(currFile);
+				if(it!=filename_tabel.end()) {
+					fileName = *it;
+				} else {
+					fileName = new TCHAR[MAX_PATH];
+					lstrcpy(fileName,currFile);
+					filename_tabel.insert(fileName);
+					//::MessageBox(NULL, TEXT("new data!"), TEXT(""), MB_OK);
+				}
+				tmp.FilePath = fileName;
+
 				AddListData(&tmp);
 			} break;
 		}
@@ -916,7 +939,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuNeedMark]._cmdID, MF_BYCOMMAND | (NeedMark?MF_CHECKED:MF_UNCHECKED));
 		////////////////////////////////
 		// 判断 RecordContent 是否有值
-			if( SaveRecord )
+			if( SaveRecord && 0)
 			{
 				bool haveErrorInIni= false;
 				TCHAR iniContent[RecordConentMax]={0};
@@ -925,6 +948,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 				int len = sizeof(str);
 				int j=0;
 				LocationInfo tmp;
+				//tmp.FilePath = new TCHAR[MAX_PATH];
 				//::MessageBox(NULL,iniContent,TEXT(""),MB_OK);
 				for(int i=0;i<RecordConentMax;i++)
 				{
