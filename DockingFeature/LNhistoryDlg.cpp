@@ -159,6 +159,10 @@ bool SetPosByIndex(int delta, bool doit)
 	{
 		PositionSetting = false;
 	}
+
+	TCHAR buffer[100]={0};
+	wsprintf(buffer,TEXT("strID=%d"), LocationList[LocationPos].FilePath);
+	::MessageBox(NULL, buffer, TEXT(""), MB_OK);
 	
 	return true;
 }
@@ -298,7 +302,8 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 				for ( int i=0;i<LocationList.size();i++ )
 				{
 					if(ShowOnlyFN) {
-						int len=sizeof(LocationList[i].FilePath)/sizeof(TCHAR);
+						//int len=sizeof(LocationList[i].FilePath)/sizeof(TCHAR);
+						int len=lstrlen(LocationList[i].FilePath);
 						TCHAR *strAddr = LocationList[i].FilePath;
 						for(int j=len-1;j>=0;j--) {
 							if(strAddr[j]==TCHAR('\\')) {
@@ -488,10 +493,6 @@ void TrackPopup(HWND _hSelf);
 
 void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf, bool recreate){
 	int cmd = TrackPopupMenu(pluginMenu, TPM_RETURNCMD, rc->left,  rc->top+toolbarHeight, 0, _hSelf, NULL);
-
-	TCHAR buffer[100]={0};
-	wsprintf(buffer,TEXT("cmdcmd=%d"), cmd);
-	//::MessageBox(NULL, buffer, TEXT(""), MB_OK);
 
 	if(cmd) {
 		for(int idx=0;idx<nbFunc;idx++) {

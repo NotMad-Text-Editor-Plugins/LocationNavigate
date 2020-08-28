@@ -22,7 +22,7 @@
 #include <WinBase.h>
 #include "Scintilla.h"
 
-#define UseThread 1
+#define UseThread 0
 
 ////////////////SELF DATA BEGIN///////////
 TCHAR currFile[MAX_PATH]={0};
@@ -291,12 +291,6 @@ void AddListData(LocationInfo *tmp)
 		}
 	}
 
-	TCHAR buffer[100]={0};
-	wsprintf(buffer,TEXT("getHasSelectedText=%d"), IsSelectionOverlapping());
-	//::MessageBox(NULL, buffer, TEXT(""), MB_OK);
-
-
-
 	if ( LocationPos != preLen-1 && !AlwaysRecord && !PageActive)
 	{
 
@@ -325,17 +319,9 @@ void AddListData(LocationInfo *tmp)
 	//wsprintf(buffer,TEXT("%d"),lastIndex);
 	//::MessageBox(nppData._nppHandle, buffer, TEXT(""), MB_OK);
 	LocationList.push_back(*tmp);
-	while ( true )
+	while ( LocationList.size()>MaxList )
 	{
-		if ( LocationList.size()>MaxList)
-		{
-			// 移除开头的数据
-			LocationList.pop_front();
-		}else
-		{
-			// 循环做，一直到长度为设定长度
-			break;
-		}
+		LocationList.pop_front();
 	}
 	LocationPos = LocationList.size()-1;
 }
