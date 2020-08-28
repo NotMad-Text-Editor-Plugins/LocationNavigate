@@ -159,6 +159,7 @@ bool SetPosByIndex(int delta, bool doit)
 	{
 		PositionSetting = false;
 	}
+	
 	return true;
 }
 void ClearLocationList()
@@ -174,6 +175,8 @@ ToolBarButtonUnit ListBoxToolBarButtons[] = {
 #define ListBoxToolBarSize sizeof(ListBoxToolBarButtons)/sizeof(ToolBarButtonUnit)
 
 int toolbarHeight=28;
+
+int BufferIdBeforeClick=0;
 
 INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -191,7 +194,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 				case MAKELONG(IDC_BUTTON_CLEAR,BN_CLICKED):
 				{
 					ClearLocationList();
-					refreshDlg();
+					refreshDlg(1);
 					::SendMessage(curScintilla, SCI_MARKERDELETEALL, _MARK_INDEX,0);
 					::SendMessage(curScintilla, SCI_MARKERDELETEALL, _SAVE_INDEX,0);
 					MarkHistory.clear();
@@ -210,7 +213,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 					InCurr  = (::SendMessage(_hInCurr, BM_GETCHECK,0,0))==1;
 					// 刷新菜单
 					::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuInCurr]._cmdID, MF_BYCOMMAND | (InCurr?MF_CHECKED:MF_UNCHECKED));
-					refreshDlg();
+					refreshDlg(0);
 				}
 				break;
 				case MAKELONG(IDC_CHECK_SAVERECORD,BN_CLICKED):
@@ -229,10 +232,12 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 						MaxOffset = val;
 					}
 					val = ::GetDlgItemInt(_hSelf, ID_LNHISTORY_EDIT2, &isSuccessful, FALSE);
-					if ( val >=5 && val <=300 )
-					{
-						MaxList = val;
+					if ( val < 5) {
+						val=5;
+					} else if(val > 65536) {
+						val=65536;
 					}
+					MaxList = val;
 					//sync here
 					AutoClean = (::SendMessage(_hAuto, BM_GETCHECK,0,0))==1;
 					AlwaysRecord = (::SendMessage(_hAlways, BM_GETCHECK,0,0))==1;
@@ -253,10 +258,16 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 					//::MessageBox(this->getHSelf(),TEXT("Setting is Saved!") , TEXT("Info"), MB_OK);
 				}
 				break;
-				// 响应双击和按钮事件
+				// 响应双击和按钮事件 doubleclick
 				case MAKELONG(IDC_LOC_LIST,LBN_DBLCLK):
 				case IDOK :
 				{
+					//if ( LocationPos > -1 && LocationPos < LocationList.size()) {
+					//	BufferIdBeforeClick = LocationList[LocationPos].bufferID;
+					//} else {
+					//	BufferIdBeforeClick = 0;
+					//}
+					BufferIdBeforeClick=1;
 					long index = ::SendMessage( _hListBox, LB_GETCURSEL, 0, 0);
 					if ( index > -1 && index < LocationList.size())
 					{
@@ -264,7 +275,8 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 						SetPosByIndex(0, false);
 					}
 					//::SendMessage(nppData._nppHandle, NPPM_GETPOSFROMBUFFERID, 0, (LPARAM)&which);
-					refreshDlg();
+					refreshDlg(0);
+					BufferIdBeforeClick=0;
 					return TRUE;
 				}
 			break;
@@ -276,17 +288,34 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 		{
 			// 首先需要检查 结构是否改变过
 			// 读取变量刷新到页面
-			::SendMessage( _hListBox, LB_RESETCONTENT, 0, 0 );
-			//::MessageBox(NULL,TEXT("111") , TEXT(""), MB_OK);%d,,LocationList[i].bufferID
-			for ( int i=0;i<LocationList.size();i++ )
-			{
+			//LockWindowUpdate(_hListBox) ;
+			if(lParam) {
 				TCHAR strHint[500]={0};
-				wsprintf(strHint,TEXT("%c,%d,%s"),LocationList[i].changed?'!':'=',LocationList[i].position+1,LocationList[i].FilePath);
-				::SendMessage( _hListBox, LB_ADDSTRING, 0, (LPARAM)strHint );
+				::SendMessage( _hListBox, LB_RESETCONTENT, 0, 0 );
+				bool ShowOnlyFN=true;
+				bool ShowLNRT=true;
+				//::MessageBox(NULL,TEXT("111") , TEXT(""), MB_OK);%d,,LocationList[i].bufferID
+				for ( int i=0;i<LocationList.size();i++ )
+				{
+					if(ShowOnlyFN) {
+						int len=sizeof(LocationList[i].FilePath)/sizeof(TCHAR);
+						TCHAR *strAddr = LocationList[i].FilePath;
+						for(int j=len-1;j>=0;j--) {
+							if(strAddr[j]==TCHAR('\\')) {
+								strAddr+=j+1;
+								break;
+							}
+						}
+						wsprintf(strHint,LocationList[i].changed?TEXT("%s * : (%d)"):TEXT("%s : (%d)"), strAddr, LocationList[i].position+1);
+					} else {
+						wsprintf(strHint,TEXT("%c,%d,%s"),LocationList[i].changed?'!':'=',LocationList[i].position+1, LocationList[i].FilePath);
+					}
+
+					::SendMessage( _hListBox, LB_ADDSTRING, 0, (LPARAM)strHint );
+				}
 			}
 			// 设置当前点
 			::SendMessage( _hListBox, LB_SETCURSEL, LocationPos, 0);
-
 			//refreshValue();
 		}
 		break;

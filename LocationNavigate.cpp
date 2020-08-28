@@ -22,7 +22,7 @@
 #include <WinBase.h>
 #include "Scintilla.h"
 
-#define UseThread 0
+#define UseThread 1
 
 ////////////////SELF DATA BEGIN///////////
 TCHAR currFile[MAX_PATH]={0};
@@ -73,6 +73,8 @@ extern HANDLE				g_hModule;
 
 extern LocationNavigateDlg _LNhistory;
 
+
+extern int BufferIdBeforeClick;
 
 int PrevSelStart=-1, PrevSelEnd=-1;
 
@@ -500,6 +502,7 @@ void processNavActions() {
 						LocationList[i].bufferID = currBufferID;
 					}
 				}
+				//::MessageBox(NULL, TEXT("ActionActive"), TEXT(""), MB_OK);
 				InitBookmark();
 			} break;
 			case ActionClosed : {
@@ -518,9 +521,9 @@ void processNavActions() {
 		}
 		ActionDataList.pop_front();
 	}
-	if ( ThreadNeedRefresh )
+	if ( ThreadNeedRefresh && _LNhistory.isVisible())
 	{
-		_LNhistory.refreshDlg();
+		_LNhistory.refreshDlg(1);
 		ThreadNeedRefresh = false;
 	}
 }
@@ -1130,11 +1133,17 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 				curScintilla = (which == 0)?nppData._scintillaMainHandle:nppData._scintillaSecondHandle;
 			}
 
-			currTmpBufferID = notifyCode->nmhdr.idFrom;
-			::SendMessage(nppData._nppHandle, NPPM_GETFULLPATHFROMBUFFERID, (WPARAM)notifyCode->nmhdr.idFrom, (LPARAM)currTmpFile);
-			ActionData tmp;
-			tmp.type = ActionActive;
-			ActionDataList.push_back(tmp);
+
+			bool NewDocAct = currTmpBufferID!=notifyCode->nmhdr.idFrom;
+			
+			if(!BufferIdBeforeClick) {
+				currTmpBufferID = notifyCode->nmhdr.idFrom;
+				::SendMessage(nppData._nppHandle, NPPM_GETFULLPATHFROMBUFFERID, (WPARAM)notifyCode->nmhdr.idFrom, (LPARAM)currTmpFile);
+				ActionData tmp;
+				tmp.type = ActionActive;
+				ActionDataList.push_back(tmp);
+			}
+
 			// 最终将修改 currBufferID currFile
 			if(ready){
 				// 最后被触发的

@@ -29,6 +29,8 @@
 
 LocationNavigateDlg _LNhistory;
 
+extern int BufferIdBeforeClick;
+
 #ifdef UNICODE 
 	#define generic_itoa _itow
 #else
@@ -282,6 +284,7 @@ void commandMenuCleanUp()
 //----------------------------------------------//
 void PreviousLocation()
 {
+	BufferIdBeforeClick=1;
 	if (LocationPos > 0)
 	{
 		if ( InCurr )
@@ -302,11 +305,13 @@ void PreviousLocation()
 		} else {
 			SetPosByIndex(-1);
 		}
-		_LNhistory.refreshDlg();
+		_LNhistory.refreshDlg(0);
 	}
+	BufferIdBeforeClick=0;
 }
 void NextLocation()
 {
+	BufferIdBeforeClick=1;
 	if (LocationPos < LocationList.size()-1)
 	{
 		// 需要查找当前文件的下一个
@@ -328,11 +333,14 @@ void NextLocation()
 		} else {
 			SetPosByIndex(1);
 		}
-		_LNhistory.refreshDlg();
+		_LNhistory.refreshDlg(0);
 	}
+	BufferIdBeforeClick=0
+		;
 }
 void PreviousChangedLocation()
 {
+	BufferIdBeforeClick=1;
 	int tmpPos = LocationPos;
 	int len =  LocationList.size()-1;
 	if (tmpPos > len )
@@ -363,14 +371,16 @@ void PreviousChangedLocation()
 				if(!SetPosByIndex(pos-LocationPos, false)) {
 					continue;
 				}
-				_LNhistory.refreshDlg();
+				_LNhistory.refreshDlg(0);
 				break;
 			}
 		}
 	}
+	BufferIdBeforeClick=0;
 }
 void NextChangedLocation()
 {
+	BufferIdBeforeClick=1;
 	int tmpPos = LocationPos;
 	int len =  LocationList.size()-1;
 	if (tmpPos > len )
@@ -399,11 +409,12 @@ void NextChangedLocation()
 				if(!SetPosByIndex(pos-LocationPos, false)) {
 					continue;
 				}
-				_LNhistory.refreshDlg();
+				_LNhistory.refreshDlg(0);
 				break;
 			}
 		}
 	}
+	BufferIdBeforeClick=0;
 }
 
 void FlipCheckMenu(bool *val, int mid) {
@@ -427,7 +438,7 @@ void ManualRecord()
 void ClearAllRecords()
 {
 	ClearLocationList();
-	_LNhistory.refreshDlg();
+	_LNhistory.refreshDlg(1);
 }
 void SkipClosed()
 {
@@ -454,7 +465,7 @@ void NavigateInCurr()
 {
 	FlipCheckMenu(&InCurr, menuInCurr);
 	// 刷新配置界面
-	_LNhistory.refreshDlg();
+	_LNhistory.refreshDlg(0);
 	if ( _LNhistory.isCreated() )
 	{
 		::SendMessage( _LNhistory._hInCurr, BM_SETCHECK ,(LPARAM)(InCurr?1:0),0);

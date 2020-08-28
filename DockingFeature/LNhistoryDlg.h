@@ -118,7 +118,7 @@ public :
 
 		::SendMessage( _hSelf, SELF_REFRESH, LocationPos, 0);
     };
-	void refreshDlg(){
+	void refreshDlg(bool updateList){
 		// 负责清理相同的数据
 		//::MessageBox(NULL, TEXT("refreshDlg"), TEXT(""), MB_OK);
 		//EnterCriticalSection(&criCounter);
@@ -192,7 +192,7 @@ public :
 		//LeaveCriticalSection(&criCounter);
 		if ( this->isCreated() )
 		{
-			::SendMessage( _hSelf, SELF_REFRESH, LocationPos, 0);
+			::SendMessage( _hSelf, SELF_REFRESH, LocationPos, updateList);
 		}
 	};
 	void setParent(HWND parent2set){
