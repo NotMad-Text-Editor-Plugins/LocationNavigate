@@ -327,7 +327,7 @@ void ManualRecord()
 }
 void ClearAllRecords()
 {
-	if(IDOK!=::MessageBox(_LNhistory.getHSelf(), TEXT("Clear All Nav-History?"), TEXT(""), MB_OKCANCEL | MB_TASKMODAL))
+	if(IDOK!=::MessageBox(_LNhistory.getHSelf(), TEXT("Clear All Navigation History?"), TEXT(""), MB_OKCANCEL | MB_TASKMODAL))
 		return;
 	ClearLocationList();
 	_LNhistory.refreshDlg(1);
@@ -393,7 +393,7 @@ void ToggleHistoryPanel()
 		// the dlgDlg should be the index of funcItem where the current function pointer is
 		data.dlgID = menuOption;
 		data.hIconTab       = ( HICON )::LoadImage( _LNhistory.getHinst(),
-			MAKEINTRESOURCE( IDI_ICON1 ), IMAGE_ICON, 0, 0,
+			MAKEINTRESOURCE( IDI_ICON1 ), IMAGE_ICON, 14, 14,
 			LR_LOADMAP3DCOLORS | LR_LOADTRANSPARENT );
 		::SendMessage( nppData._nppHandle, NPPM_DMMREGASDCKDLG, 0, ( LPARAM )&data );
 
@@ -412,7 +412,7 @@ void ToggleHistoryPanel()
 
 void ShowAbout()
 {
-	::MessageBox(nppData._nppHandle, TEXT(" You can use Ctrl+ - jump to previous cursor position \n You can use Ctrl+Shift+ - jump to next cursor position \n You can use Ctrl+Alt+ Z jump to previous changed position \n You can use Ctrl+Alt+ Y jump to next changed position \n 'Auto clear when close'- Will remove the file's record when file closed.\n 'Always record'- Will always record the position even after you jumped.\n 'Save record when App exit'- Record data when application exit and it will be loaded in next run \n 'In Curr'- If checked, navigate only in current file\n 'Mark'- If checked, modified line will be marked by bookmark or color\n 'Mark Color/Save Color'- Available if not select mark with bookmark, you could mark with different symbol.  \n\n Version: 0.4.7.7   Author: Austin Young<pattazl@gmail.com>"), TEXT("About Location Navigate"), MB_OK);
+	::MessageBox(nppData._nppHandle, TEXT(" You can use Ctrl+ - jump to previous cursor position \n You can use Ctrl+Shift+ - jump to next cursor position \n You can use Ctrl+Alt+ Z jump to previous changed position \n You can use Ctrl+Alt+ Y jump to next changed position \n 'Auto clear when close'- Will remove the file's record when file closed.\n 'Always record'- Will always record the position even after you jumped.\n 'Save record when App exit'- Record data when application exit and it will be loaded in next run \n 'In Curr'- If checked, navigate only in current file\n 'Mark'- If checked, modified line will be marked by bookmark or color\n 'Mark Color/Save Color'- Available if not select mark with bookmark, you could mark with different symbol.  \n\nBundled with Textrument (v0.1.1). \n\n (Save/Restore Currently unavailable!)  Version: Original Author: Austin Young<pattazl@gmail.com>"), TEXT("About Location Navigate"), MB_OK);
 }
 
 //----------------------------------------------//
@@ -464,7 +464,7 @@ void commandMenuInit()
 	bAutoRecord   = (::GetPrivateProfileInt(sectionName, strAutoRecord, 1, iniFilePath)== 1) ;
 	AlwaysRefreshBtns   = (::GetPrivateProfileInt(sectionName, strAlwaysRefreshBtn, 0, iniFilePath)== 1) ;
 	ShowFNOnly   = (::GetPrivateProfileInt(sectionName, strShowFNOnly, 1, iniFilePath)== 1) ;
-	NeedMark = (::GetPrivateProfileInt(sectionName, strNeedMark, 1, iniFilePath)== 1) ;
+	NeedMark = (::GetPrivateProfileInt(sectionName, strNeedMark, 0, iniFilePath)== 1) ;
 	ByBookMark = (MarkType)::GetPrivateProfileInt(sectionName, strByBookMark, 0, iniFilePath);
 	MarkColor = ::GetPrivateProfileInt(sectionName, strMarkColor, DefaultColor, iniFilePath);
 	SaveColor = ::GetPrivateProfileInt(sectionName, strSaveColor, DefaultSaveColor, iniFilePath);
@@ -498,7 +498,7 @@ void commandMenuInit()
 	setCommand(menuOption, TEXT("Show List and Option"), ToggleHistoryPanel, optionsKey, false);
 
 	setCommand(menuSeparator0, TEXT("-SEPARATOR-"),NULL, NULL, false);
-	setCommand(menuAlwaysRefresh, TEXT("Always Update Icon"), FlipRefreshBtns, NULL, false);
+	setCommand(menuAlwaysRefresh, TEXT("Always Update Icons"), FlipRefreshBtns, NULL, false);
 	setCommand(menuAutoRecord, TEXT("Auto Record"), AutoRecord, AutoKey, false);
 	setCommand(menuManualRecord, TEXT("Record"), ManualRecord, ManualKey, false);
 	setCommand(menuClearRecords, TEXT("Clear All Records"), ClearAllRecords, ClearRecordsKey, false);

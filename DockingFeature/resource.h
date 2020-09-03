@@ -591,6 +591,7 @@
 #define IDB_EX_DELETE                   131
 #define IDB_EX_DELETE_ALL               132
 #define IDB_EX_OPTIONS                  133
+#define IDB_EX_BREFNAME                  134
 
 #define IDM_EX_UP                       2001
 #define IDM_EX_DOWN                     2002
@@ -600,6 +601,7 @@
 #define IDM_EX_DELETE                   2006
 #define IDM_EX_DELETE_ALL               2007
 #define IDM_EX_OPTIONS                  2008
+#define IDM_EX_BREFNAME                 2009
 
 #define VK_F2                           0x71
 #define VK_F3                           0x72

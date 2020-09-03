@@ -45,11 +45,11 @@ enum menuList
 	menuOption,
 	menuSeparator0,
 
-	menuAlwaysRefresh,
 	menuAutoRecord,
 	menuManualRecord,
 	menuClearRecords,
 
+	menuAlwaysRefresh,
 	menuInCurr,
 	menuNeedMark,
 

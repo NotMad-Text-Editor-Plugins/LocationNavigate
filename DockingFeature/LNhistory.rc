@@ -114,6 +114,8 @@ IDB_EX_DELETE_ALL       BITMAP                  "..\\res\\bin_empty.bmp"
 
 IDB_EX_OPTIONS          BITMAP                  "..\\res\\cog.bmp"
 
+IDB_EX_BREFNAME          BITMAP                  "..\\res\\briefname.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

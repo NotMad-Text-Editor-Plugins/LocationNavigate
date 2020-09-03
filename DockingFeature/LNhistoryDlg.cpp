@@ -18,7 +18,7 @@
 #include "LNhistoryDlg.h"
 #include "PluginDefinition.h"
 
-bool bSupressSel;
+bool bSupressSel=false;
 
 void LocationNavigateDlg::display(bool toShow){
 	DockingDlgInterface::display(toShow);
@@ -75,7 +75,7 @@ void LocationNavigateDlg::refreshValue()
 	::SendMessage( _hSaveRecord, BM_SETCHECK ,(LPARAM)(SaveRecord?1:0),0);
 	::SendMessage( _hInCurr, BM_SETCHECK ,(LPARAM)(InCurr?1:0),0);
 	::SendMessage( _hMark, BM_SETCHECK ,(LPARAM)(NeedMark?1:0),0);
-	
+
 
 	//::SendMessage( _hBookmark, BM_SETCHECK ,(LPARAM)(ByBookMark?1:0),0);
 	::SendMessage(_hBookmark, CB_SETCURSEL, ByBookMark, 0);
@@ -215,8 +215,9 @@ ToolBarButtonUnit ToolBarIconList[] = {
 	{IDM_EX_OPTIONS, -1, -1, -1, IDB_EX_OPTIONS }, 
 	{IDM_EX_UP, -1, -1, -1, IDB_EX_UP }, 
 	{IDM_EX_DOWN, -1, -1, -1, IDB_EX_DOWN }, 
-	{IDM_EX_DELETE, -1, -1, -1, IDB_EX_DELETE }, 
+	{IDM_EX_BREFNAME, -1, -1, -1, IDB_EX_BREFNAME }, 
 	{IDM_EX_DELETE_ALL, -1, -1, -1, IDB_EX_DELETE_ALL }, 
+	{IDM_EX_DELETE, -1, -1, -1, IDB_EX_DELETE }, 
 };
 
 #define ListBoxToolBarSize sizeof(ToolBarIconList)/sizeof(ToolBarButtonUnit)
@@ -251,7 +252,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 				break;
 				case MAKELONG(IDC_CHECK_MARK,BN_CLICKED):
 					{
-						NeedMark  = isVisible();//(::SendMessage(_hMark, BM_GETCHECK,0,0))==1;
+						NeedMark  = (::SendMessage(_hMark, BM_GETCHECK,0,0))==1;
 						InitBookmark();
 						// 刷新菜单
 						::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuNeedMark]._cmdID, MF_BYCOMMAND | (NeedMark?MF_CHECKED:MF_UNCHECKED));
@@ -346,7 +347,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 				skingNxt=skingPrev=false;
 			}
 			int LocationSize=LocationList.size()-1;
-			bool do_refresh_dlg = lParam; //parse_seekable_state_only
+			bool do_refresh_dlg = lParam;
 			if(wParam||do_refresh_dlg) {
 				if(do_refresh_dlg) {
 					ZeroMemory(strHint, 500);
@@ -396,7 +397,8 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 					}
 				}
 				skFlags = skingNxt|skingPrev<<1|skingNxtChng<<2|skingPrevChng<<3;
-			} else {
+			} 
+			if(!do_refresh_dlg) {
 				::SendMessage( _hListBox, LB_SETSEL, 0, -1);
 			}
 			// 设置当前点
@@ -457,6 +459,8 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 			//toolBar.init( _hInst, ListBoxPanel.getHSelf(), TB_STANDARD, ListBoxToolBarButtons, ListBoxToolBarSize );
 			toolBar.display();
 			ListBoxPanel.SetToolbar( &toolBar );
+
+			toolBar.setCheck(IDM_EX_BREFNAME, ShowFNOnly?1:0);
 #if TBPIsWrapper
 			ListBoxPanel.create(_hSaveColor);
 #else
@@ -654,6 +658,11 @@ void LocationNavigateDlg::OnToolBarCommand( UINT Cmd )
 		case IDM_EX_OPTIONS:
 			TrackPopup(_hSelf);
 		return;
+		case IDM_EX_BREFNAME: {
+			ShowFNOnly=!ShowFNOnly;
+			toolBar.setCheck(IDM_EX_BREFNAME, ShowFNOnly?1:0);
+			refreshDlg(1);
+		} return;
 		case IDM_EX_UP:
 			PreviousLocation();
 		return;

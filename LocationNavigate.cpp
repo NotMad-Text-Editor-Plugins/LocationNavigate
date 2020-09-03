@@ -100,7 +100,7 @@ void getTextSelection(int& start, int& end) {
 
 bool IsSelectionOverlapping( const int CurrSelStart, const int CurrSelEnd )
 {
-	if(1) return 0;
+	//if(1) return 0;
 
 	if ( CurrSelStart == CurrSelEnd )
 	{
