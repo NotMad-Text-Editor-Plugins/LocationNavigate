@@ -31,6 +31,30 @@ LocationNavigateDlg _LNhistory;
 
 extern int BufferIdBeforeClick;
 
+extern bool WindowOpaqueMsg;
+
+deque<LocationInfo>LocationList;
+deque<LocationInfo>LocationSave;
+long LocationPos=0;
+bool PositionSetting = false;
+int MaxOffset=100;
+int MaxList = 50;
+bool AutoClean = false;
+HWND curScintilla=0;
+bool AlwaysRecord=false;
+bool SaveRecord = false;
+bool InCurr = false;
+bool AlwaysRefreshBtns = false;
+bool ShowFNOnly = true;
+bool skipClosed = false;
+bool pinMenu = false;
+bool bIsPaused = false;
+bool bAutoRecord = true;
+bool NeedMark = false;
+MarkType ByBookMark = MarkHightLight;
+long MarkColor = DefaultColor;
+long SaveColor = DefaultSaveColor;
+
 #ifdef UNICODE 
 	#define generic_itoa _itow
 #else
@@ -41,9 +65,7 @@ FuncItem funcItem[nbFunc];
 bool menuState[nbFunc];
 HWND hToolbar;
 int IconID[nbFunc];
-//
 // The data of Notepad++ that you can use in your plugin commands
-//
 NppData nppData;
 HANDLE				g_hModule;
 toolbarIcons		g_TBPrevious{0,0,0x666,0,IDI_ICON_PREV,IDI_ICON_PREV_ACT,IDI_ICON_PREV_OFF,IDB_BITMAP1};
@@ -53,7 +75,6 @@ toolbarIcons		g_TBNextChg{0,0,0x666,0,IDI_ICON_NEXT1,IDI_ICON_NEXT1_ACT,IDI_ICON
 
 TCHAR iniFilePath[MAX_PATH];
 //bool SaveRecording = false;
-//#define DOCKABLE_LNH_INDEX 4
 
 //
 // Initialize your plugin data here
@@ -67,9 +88,7 @@ void pluginInit(HANDLE hModule)
 	//InitializeCriticalSection(&criCounter); 
 }
 
-//
-// Here you can do the clean up, save the parameters (if any) for the next session
-//
+// Here do the clean up, save the parameters if any
 void pluginCleanUp()
 {
 	//DeleteCriticalSection(&criCounter);
@@ -95,6 +114,10 @@ void pluginCleanUp()
 	::WritePrivateProfileString(sectionName, strPinMenu, str, iniFilePath);
 	wsprintf(str,TEXT("%d"),bAutoRecord?1:0);
 	::WritePrivateProfileString(sectionName, strAutoRecord, str, iniFilePath);
+	wsprintf(str,TEXT("%d"),AlwaysRefreshBtns?1:0);
+	::WritePrivateProfileString(sectionName, strAlwaysRefreshBtn, str, iniFilePath);
+	wsprintf(str,TEXT("%d"),ShowFNOnly?1:0);
+	::WritePrivateProfileString(sectionName, strShowFNOnly, str, iniFilePath);
 	
 	wsprintf(str,TEXT("%d"),NeedMark?1:0);
 	::WritePrivateProfileString(sectionName, strNeedMark, str, iniFilePath);
@@ -107,149 +130,7 @@ void pluginCleanUp()
 
 }
 
-//
-// Initialization of your plugin commands
-// You should fill your plugins commands here
-void commandMenuInit()
-{
-	//
-	// Firstly we get the parameters from your plugin config file (if any)
-	//
-
-	// get path of plugin configuration
-	::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)iniFilePath);
-
-	// if config path doesn't exist, we create it
-	if (PathFileExists(iniFilePath) == FALSE)
-	{
-		::CreateDirectory(iniFilePath, NULL);
-	}
-
-	// make your plugin config file full file path name
-	PathAppend(iniFilePath, configFileName);
-
-	// get the parameter value from plugin config
-	MaxOffset = ::GetPrivateProfileInt(sectionName, strMaxOffset, 100, iniFilePath);
-	MaxList = ::GetPrivateProfileInt(sectionName, strMaxList, 50, iniFilePath) ;
-	AutoClean = (::GetPrivateProfileInt(sectionName, strAutoClean, 0, iniFilePath)== 1) ;
-	bIsPaused = (::GetPrivateProfileInt(sectionName, srtPaused, 0, iniFilePath)== 1) ;
-	AlwaysRecord = (::GetPrivateProfileInt(sectionName, strAlwaysRecord, 0, iniFilePath)== 1) ;
-	SaveRecord   = (::GetPrivateProfileInt(sectionName, strSaveRecord, 0, iniFilePath)== 1) ;
-	InCurr   = (::GetPrivateProfileInt(sectionName, strInCurr, 0, iniFilePath)== 1) ;
-	skipClosed   = (::GetPrivateProfileInt(sectionName, strSkipClosed, 0, iniFilePath)== 1) ;
-	pinMenu   = (::GetPrivateProfileInt(sectionName, strPinMenu, 0, iniFilePath)== 1) ;
-	bAutoRecord   = (::GetPrivateProfileInt(sectionName, strAutoRecord, 1, iniFilePath)== 1) ;
-	NeedMark = (::GetPrivateProfileInt(sectionName, strNeedMark, 1, iniFilePath)== 1) ;
-	ByBookMark = (MarkType)::GetPrivateProfileInt(sectionName, strByBookMark, 0, iniFilePath);
-	MarkColor = ::GetPrivateProfileInt(sectionName, strMarkColor, DefaultColor, iniFilePath);
-	SaveColor = ::GetPrivateProfileInt(sectionName, strSaveColor, DefaultSaveColor, iniFilePath);
-    //--------------------------------------------//
-    //-- STEP 3. CUSTOMIZE YOUR PLUGIN COMMANDS --//
-    //--------------------------------------------//
-    // with function :
-    // setCommand(int index,                      // zero based number to indicate the order of command
-    //            TCHAR *commandName,             // the command name that you want to see in plugin menu
-    //            PFUNCPLUGINCMD functionPointer, // the symbol of function (function pointer) associated with this command. The body should be defined below. See Step 4.
-    //            ShortcutKey *shortcut,          // optional. Define a shortcut to trigger this command
-    //            bool check0nInit                // optional. Make this menu item be checked visually
-    //            );
-	#define VK_OEM_MINUS      0xBD
-	ShortcutKey *PreviousKey = new ShortcutKey;
-	PreviousKey->_isAlt = false;
-	PreviousKey->_isCtrl = true;
-	PreviousKey->_isShift = false;
-	PreviousKey->_key = VK_OEM_MINUS; 
-
-	ShortcutKey *NextKey = new ShortcutKey;
-	NextKey->_isAlt = false;
-	NextKey->_isCtrl = true;
-	NextKey->_isShift = true;
-	NextKey->_key = VK_OEM_MINUS; 
-
-	ShortcutKey *PreChgKey = new ShortcutKey;
-	PreChgKey->_isAlt = true;
-	PreChgKey->_isCtrl = true;
-	PreChgKey->_isShift = false;
-	PreChgKey->_key = 0x5A ; //VK_Z
-
-	ShortcutKey *NextChgKey = new ShortcutKey;
-	NextChgKey->_isAlt = true;
-	NextChgKey->_isCtrl = true;
-	NextChgKey->_isShift = false;
-	NextChgKey->_key = 0x59;  //VK_Y
-
-
-	ShortcutKey *optionsKey = new ShortcutKey;
-	optionsKey->_isAlt = true;
-	optionsKey->_isCtrl = true;
-	optionsKey->_isShift = true;
-	optionsKey->_key = VK_OEM_MINUS;
-
-	ShortcutKey *AutoKey = new ShortcutKey;
-	AutoKey->_isAlt = true;
-	AutoKey->_isCtrl = true;
-	AutoKey->_isShift = false;
-	AutoKey->_key = VK_F9;
-
-	ShortcutKey *ManualKey = new ShortcutKey;
-	ManualKey->_isAlt = false;
-	ManualKey->_isCtrl = false;
-	ManualKey->_isShift = false;
-	ManualKey->_key = VK_F9;
-
-	ShortcutKey *ClearRecordsKey = new ShortcutKey;
-	ClearRecordsKey->_isAlt = true;
-	ClearRecordsKey->_isCtrl = true;
-	ClearRecordsKey->_isShift = true;
-	ClearRecordsKey->_key = VK_F9;
-
-	ShortcutKey *incurrKey = new ShortcutKey;
-	incurrKey->_isAlt = true;
-	incurrKey->_isCtrl = false;
-	incurrKey->_isShift = false;
-	incurrKey->_key = VK_OEM_MINUS;
-
-	ShortcutKey *markKey = new ShortcutKey;
-	markKey->_isAlt = true;
-	markKey->_isCtrl = true;
-	markKey->_isShift = false;
-	markKey->_key = 0x4D; // VK_Y
-
-    setCommand(menuPrevious, TEXT("Previous Location"), PreviousLocation, PreviousKey, false);
-    setCommand(menuNext, TEXT("Next Location"), NextLocation, NextKey, false);
-	setCommand(menuChgPrevious, TEXT("Previous Changed"), PreviousChangedLocation, PreChgKey, false);
-	setCommand(menuChgNext, TEXT("Next Changed"), NextChangedLocation, NextChgKey, false);
-	setCommand(menuOption, TEXT("Show List and Option"), LocationNavigateHistoryDlg, optionsKey, false);
-	
-	setCommand(menuSeparator0, TEXT("-SEPARATOR-"),NULL, NULL, false);
-	setCommand(menuAutoRecord, TEXT("Auto Record"), AutoRecord, AutoKey, false);
-	setCommand(menuManualRecord, TEXT("Record"), ManualRecord, ManualKey, false);
-	setCommand(menuClearRecords, TEXT("Clear All Records"), ClearAllRecords, ClearRecordsKey, false);
-	
-
-	setCommand(menuInCurr, TEXT("In Current File"), NavigateInCurr, incurrKey, false);
-	setCommand(menuNeedMark, TEXT("Mark Changed Line"), MarkChange, markKey, false);
-
-
-	setCommand(menuSeparator1, TEXT("-SEPARATOR-"),NULL, NULL, false);
-
-	setCommand(menuSkipClosed, TEXT("Skip Closed File"), SkipClosed, NULL, false);
-	setCommand(menuClearOnClose, TEXT("Auto Clear On Close"), FlipAutoClean, NULL, false);
-	setCommand(menuPause, TEXT("Pause"), PauseRecording, NULL, bIsPaused);
-
-
-	setCommand(menuSeparator2, TEXT("-SEPARATOR-"),NULL, NULL, false);
-	setCommand(menuPinMenu, TEXT("Pin Menu"), PinMenu, NULL, false);
-	setCommand(menuAbout, TEXT("About Location Navigate"), ShowAbout, NULL, false);
-
-	//int items[]{menuAutoRecord};
-	//for(auto idx:items) funcItem[idx].flag=1;
-
-}
-
-//
-// Here you can do the clean up (especially for the shortcut)
-//
+// Here do the clean up (especially for the shortcut)
 void commandMenuCleanUp()
 {
 	// Don't forget to deallocate your shortcut here
@@ -273,15 +154,15 @@ void commandMenuCleanUp()
 			lstrcat(iniContent,tmp);
 		}
 		::WritePrivateProfileString(sectionName, strRecordContent, iniContent, iniFilePath);
-	}else
-	{
+	} else {
 		::WritePrivateProfileString(sectionName, strRecordContent, NULL, iniFilePath);
 	}
 }
 
 //----------------------------------------------//
-//-- STEP 4. DEFINE YOUR ASSOCIATED FUNCTIONS --//
+//-- ASSOCIATED FUNCTIONS START------------------//
 //----------------------------------------------//
+
 void PreviousLocation()
 {
 	BufferIdBeforeClick=1;
@@ -335,8 +216,7 @@ void NextLocation()
 		}
 		_LNhistory.refreshDlg(0);
 	}
-	BufferIdBeforeClick=0
-		;
+	BufferIdBeforeClick=0;
 }
 void PreviousChangedLocation()
 {
@@ -347,6 +227,7 @@ void PreviousChangedLocation()
 	{
 		tmpPos = len;
 	}
+	bool PositionSet=0;
 	while ( tmpPos >0)
 	{
 		// 需要往前走一个
@@ -371,10 +252,14 @@ void PreviousChangedLocation()
 				if(!SetPosByIndex(pos-LocationPos, false)) {
 					continue;
 				}
+				PositionSet=1;
 				_LNhistory.refreshDlg(0);
 				break;
 			}
 		}
+	}
+	if(!PositionSet) {
+		EnableTBButton(menuChgPrevious, false);
 	}
 	BufferIdBeforeClick=0;
 }
@@ -387,6 +272,7 @@ void NextChangedLocation()
 	{
 		tmpPos = len;
 	}
+	bool PositionSet=0;
 	while ( tmpPos < len)
 	{
 		// 需要往后走一个
@@ -409,10 +295,14 @@ void NextChangedLocation()
 				if(!SetPosByIndex(pos-LocationPos, false)) {
 					continue;
 				}
+				PositionSet=1;
 				_LNhistory.refreshDlg(0);
 				break;
 			}
 		}
+	}
+	if(!PositionSet) {
+		EnableTBButton(menuChgNext, false);
 	}
 	BufferIdBeforeClick=0;
 }
@@ -437,12 +327,18 @@ void ManualRecord()
 }
 void ClearAllRecords()
 {
+	if(IDOK!=::MessageBox(_LNhistory.getHSelf(), TEXT("Clear All Nav-History?"), TEXT(""), MB_OKCANCEL | MB_TASKMODAL))
+		return;
 	ClearLocationList();
 	_LNhistory.refreshDlg(1);
 }
 void SkipClosed()
 {
 	FlipCheckMenu(&skipClosed, menuSkipClosed);
+}
+void FlipRefreshBtns()
+{
+	FlipCheckMenu(&AlwaysRefreshBtns, menuAlwaysRefresh);
 }
 void FlipAutoClean()
 {
@@ -480,9 +376,49 @@ void MarkChange()
 		::SendMessage( _LNhistory._hMark, BM_SETCHECK ,(LPARAM)(NeedMark?1:0),0);
 	}
 }
-//
-// This function help you to initialize your plugin commands
-//
+
+void ToggleHistoryPanel()
+{
+	_LNhistory.setParent( nppData._nppHandle );
+	tTbData data = {0};
+
+	if ( !_LNhistory.isCreated() )
+	{
+		WindowOpaqueMsg = 0;
+		_LNhistory.create( &data );
+		WindowOpaqueMsg = 1;
+		// define the default docking behaviour
+		data.uMask          = DWS_DF_CONT_RIGHT | DWS_ICONTAB;
+		data.pszModuleName = _LNhistory.getPluginFileName();
+		// the dlgDlg should be the index of funcItem where the current function pointer is
+		data.dlgID = menuOption;
+		data.hIconTab       = ( HICON )::LoadImage( _LNhistory.getHinst(),
+			MAKEINTRESOURCE( IDI_ICON1 ), IMAGE_ICON, 0, 0,
+			LR_LOADMAP3DCOLORS | LR_LOADTRANSPARENT );
+		::SendMessage( nppData._nppHandle, NPPM_DMMREGASDCKDLG, 0, ( LPARAM )&data );
+
+		_LNhistory.display();
+		::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK, 
+			funcItem[menuOption]._cmdID, true );
+	} else {
+		bool NeedShowDlg = !_LNhistory.isVisible();
+
+		_LNhistory.display(NeedShowDlg);
+
+		::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
+			funcItem[menuOption]._cmdID, NeedShowDlg );
+	}
+}
+
+void ShowAbout()
+{
+	::MessageBox(nppData._nppHandle, TEXT(" You can use Ctrl+ - jump to previous cursor position \n You can use Ctrl+Shift+ - jump to next cursor position \n You can use Ctrl+Alt+ Z jump to previous changed position \n You can use Ctrl+Alt+ Y jump to next changed position \n 'Auto clear when close'- Will remove the file's record when file closed.\n 'Always record'- Will always record the position even after you jumped.\n 'Save record when App exit'- Record data when application exit and it will be loaded in next run \n 'In Curr'- If checked, navigate only in current file\n 'Mark'- If checked, modified line will be marked by bookmark or color\n 'Mark Color/Save Color'- Available if not select mark with bookmark, you could mark with different symbol.  \n\n Version: 0.4.7.7   Author: Austin Young<pattazl@gmail.com>"), TEXT("About Location Navigate"), MB_OK);
+}
+
+//----------------------------------------------//
+//-- ASSOCIATED FUNCTIONS END-------------------//
+//----------------------------------------------//
+
 bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey *sk, bool check0nInit) 
 {
 	if (index >= nbFunc)
@@ -498,39 +434,87 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
 
 	return true;
 }
-void LocationNavigateHistoryDlg()
-{
-	_LNhistory.setParent( nppData._nppHandle );
-	tTbData data = {0};
 
-	if ( !_LNhistory.isCreated() )
+void commandMenuInit()
+{
+	// Initialization of your plugin commands
+	// Firstly we get the parameters from your plugin config file (if any)
+	// get path of plugin configuration
+	::SendMessage(nppData._nppHandle, NPPM_GETPLUGINSCONFIGDIR, MAX_PATH, (LPARAM)iniFilePath);
+
+	// if config path doesn't exist, we create it
+	if (PathFileExists(iniFilePath) == FALSE)
 	{
-		_LNhistory.create( &data );
-		// define the default docking behaviour
-		data.uMask          = DWS_DF_CONT_RIGHT | DWS_ICONTAB;
-		data.pszModuleName = _LNhistory.getPluginFileName();
-		// the dlgDlg should be the index of funcItem where the current function pointer is
-		data.dlgID = menuOption;
-		data.hIconTab       = ( HICON )::LoadImage( _LNhistory.getHinst(),
-			MAKEINTRESOURCE( IDI_ICON1 ), IMAGE_ICON, 0, 0,
-			LR_LOADMAP3DCOLORS | LR_LOADTRANSPARENT );
-		::SendMessage( nppData._nppHandle, NPPM_DMMREGASDCKDLG, 0,
-			( LPARAM )&data );
+		::CreateDirectory(iniFilePath, NULL);
 	}
 
-	UINT state = ::GetMenuState( ::GetMenu( nppData._nppHandle ),
-		funcItem[menuOption]._cmdID, MF_BYCOMMAND );
+	// make your plugin config file full file path name
+	PathAppend(iniFilePath, configFileName);
 
-	if ( state & MF_CHECKED )
-		_LNhistory.display( false );
-	else
-		_LNhistory.display();
+	// get the parameter value from plugin config
+	MaxOffset = ::GetPrivateProfileInt(sectionName, strMaxOffset, 100, iniFilePath);
+	MaxList = ::GetPrivateProfileInt(sectionName, strMaxList, 50, iniFilePath) ;
+	AutoClean = (::GetPrivateProfileInt(sectionName, strAutoClean, 0, iniFilePath)== 1) ;
+	bIsPaused = (::GetPrivateProfileInt(sectionName, srtPaused, 0, iniFilePath)== 1) ;
+	AlwaysRecord = (::GetPrivateProfileInt(sectionName, strAlwaysRecord, 0, iniFilePath)== 1) ;
+	SaveRecord   = (::GetPrivateProfileInt(sectionName, strSaveRecord, 0, iniFilePath)== 1) ;
+	InCurr   = (::GetPrivateProfileInt(sectionName, strInCurr, 0, iniFilePath)== 1) ;
+	skipClosed   = (::GetPrivateProfileInt(sectionName, strSkipClosed, 0, iniFilePath)== 1) ;
+	pinMenu   = (::GetPrivateProfileInt(sectionName, strPinMenu, 0, iniFilePath)== 1) ;
+	bAutoRecord   = (::GetPrivateProfileInt(sectionName, strAutoRecord, 1, iniFilePath)== 1) ;
+	AlwaysRefreshBtns   = (::GetPrivateProfileInt(sectionName, strAlwaysRefreshBtn, 0, iniFilePath)== 1) ;
+	ShowFNOnly   = (::GetPrivateProfileInt(sectionName, strShowFNOnly, 1, iniFilePath)== 1) ;
+	NeedMark = (::GetPrivateProfileInt(sectionName, strNeedMark, 1, iniFilePath)== 1) ;
+	ByBookMark = (MarkType)::GetPrivateProfileInt(sectionName, strByBookMark, 0, iniFilePath);
+	MarkColor = ::GetPrivateProfileInt(sectionName, strMarkColor, DefaultColor, iniFilePath);
+	SaveColor = ::GetPrivateProfileInt(sectionName, strSaveColor, DefaultSaveColor, iniFilePath);
+	//--------------------------------------------//
+	//-- STEP 3. CUSTOMIZE YOUR PLUGIN COMMANDS --//
+	//--------------------------------------------//
+	// with function :
+	// setCommand(int index,                      // zero based number to indicate the order of command
+	//            TCHAR *commandName,             // the command name that you want to see in plugin menu
+	//            PFUNCPLUGINCMD functionPointer, // the symbol of function (function pointer) associated with this command. The body should be defined below. See Step 4.
+	//            ShortcutKey *shortcut,          // optional. Define a shortcut to trigger this command
+	//            bool check0nInit                // optional. Make this menu item be checked visually
+	//            );
+	#define VK_OEM_MINUS      0xBD
+	ShortcutKey *PreviousKey = new ShortcutKey{1,0,0,VK_OEM_MINUS};
+	ShortcutKey *NextKey = new ShortcutKey{1,0,1,VK_OEM_MINUS};
+	ShortcutKey *PreChgKey = new ShortcutKey{1,1,0,0x5A};//VK_Z
+	ShortcutKey *NextChgKey = new ShortcutKey{1,1,0,0x59};//VK_Y
+	ShortcutKey *optionsKey = new ShortcutKey{1,1,1,VK_OEM_MINUS};
+	ShortcutKey *AutoKey = new ShortcutKey{1,0,1,VK_F9};
+	ShortcutKey *ManualKey = new ShortcutKey{0,0,0,VK_F9};
+	ShortcutKey *ClearRecordsKey = new ShortcutKey{1,1,1,VK_F9};
+	ShortcutKey *incurrKey = new ShortcutKey{0,1,0,VK_OEM_MINUS};
+	ShortcutKey *markKey = new ShortcutKey{1,1,0,0x4D};// VK_M
 
-	::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-		funcItem[menuOption]._cmdID, !( state & MF_CHECKED ) );
-}
+	setCommand(menuPrevious, TEXT("Previous Location"), PreviousLocation, PreviousKey, false);
+	setCommand(menuNext, TEXT("Next Location"), NextLocation, NextKey, false);
+	setCommand(menuChgPrevious, TEXT("Previous Changed"), PreviousChangedLocation, PreChgKey, false);
+	setCommand(menuChgNext, TEXT("Next Changed"), NextChangedLocation, NextChgKey, false);
+	
+	setCommand(menuOption, TEXT("Show List and Option"), ToggleHistoryPanel, optionsKey, false);
 
-void ShowAbout()
-{
-	::MessageBox(nppData._nppHandle, TEXT(" You can use Ctrl+ - jump to previous cursor position \n You can use Ctrl+Shift+ - jump to next cursor position \n You can use Ctrl+Alt+ Z jump to previous changed position \n You can use Ctrl+Alt+ Y jump to next changed position \n 'Auto clear when close'- Will remove the file's record when file closed.\n 'Always record'- Will always record the position even after you jumped.\n 'Save record when App exit'- Record data when application exit and it will be loaded in next run \n 'In Curr'- If checked, navigate only in current file\n 'Mark'- If checked, modified line will be marked by bookmark or color\n 'Mark Color/Save Color'- Available if not select mark with bookmark, you could mark with different symbol.  \n\n Version: 0.4.7.7   Author: Austin Young<pattazl@gmail.com>"), TEXT("About Location Navigate"), MB_OK);
+	setCommand(menuSeparator0, TEXT("-SEPARATOR-"),NULL, NULL, false);
+	setCommand(menuAlwaysRefresh, TEXT("Always Update Icon"), FlipRefreshBtns, NULL, false);
+	setCommand(menuAutoRecord, TEXT("Auto Record"), AutoRecord, AutoKey, false);
+	setCommand(menuManualRecord, TEXT("Record"), ManualRecord, ManualKey, false);
+	setCommand(menuClearRecords, TEXT("Clear All Records"), ClearAllRecords, ClearRecordsKey, false);
+
+	setCommand(menuInCurr, TEXT("In Current File"), NavigateInCurr, incurrKey, false);
+	setCommand(menuNeedMark, TEXT("Mark Changed Line"), MarkChange, markKey, false);
+
+
+	setCommand(menuSeparator1, TEXT("-SEPARATOR-"),NULL, NULL, false);
+
+	setCommand(menuSkipClosed, TEXT("Skip Closed File"), SkipClosed, NULL, false);
+	setCommand(menuClearOnClose, TEXT("Auto Clear On Close"), FlipAutoClean, NULL, false);
+	setCommand(menuPause, TEXT("Pause"), PauseRecording, NULL, bIsPaused);
+
+
+	setCommand(menuSeparator2, TEXT("-SEPARATOR-"),NULL, NULL, false);
+	setCommand(menuPinMenu, TEXT("Pin Menu"), PinMenu, NULL, false);
+	setCommand(menuAbout, TEXT("About Location Navigate"), ShowAbout, NULL, false);
 }

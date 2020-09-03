@@ -32,33 +32,34 @@ const int _SAVE_INDEX = 11; //设置保存背景色
 const int STATE_SAVE = (1<<_SAVE_INDEX); // 保存的标识
 extern HWND curScintilla;
 #define SCI_MARKERSETBACK 2042
+
 class SelfCtrl : public Window 
 {
 public:
-    SelfCtrl():_hCursor(0), _oldproc(NULL), \
-        _bkColor(), _clicking(false) {};
+    void create(HWND itemHandle, long IDIndex, long bkColor = DefaultColor);
 
-    void create(HWND itemHandle,long IDIndex , long bkColor = DefaultColor);
-    void destroy(){
-	        if(_hCursor)
-                ::DestroyCursor(_hCursor);
+    void destroy() {
+	    if(_hCursor)
+            ::DestroyCursor(_hCursor);
     };
-	long GetColor(){return _bkColor;};
+
+	long GetColor() {
+		return _bkColor;
+	};
 
 private :
-    HCURSOR			_hCursor;
-
-    WNDPROC			_oldproc;
-    COLORREF		_bkColor;			
-
-    bool			_clicking;
-
+    HCURSOR			_hCursor=0;
+    WNDPROC			_oldproc=NULL;
+    COLORREF		_bkColor;	
+    bool			_clicking=false;
 	long			SelfID;
-   
-    static LRESULT CALLBACK SelfCtrlProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam){
+
+    static LRESULT CALLBACK SelfCtrlProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
         return ((SelfCtrl *)(::GetWindowLongPtr(hwnd, GWLP_USERDATA)))->runProc(hwnd, Message, wParam, lParam);
     };
+
     LRESULT runProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam);
+
 	void SetTextBkColor(HWND hwnd);
 };
 

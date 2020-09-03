@@ -21,6 +21,7 @@
 #include <list>
 #include <WinBase.h>
 #include <set>  
+#include <map>  
 #include "Scintilla.h"
 
 #define UseThread 0
@@ -32,7 +33,7 @@ struct ptrCmp
 		return lstrcmp( s1, s2 ) < 0;
 	}
 };
-set<TCHAR *, ptrCmp> filename_tabel;
+set<TCHAR *, ptrCmp> filename_table;
 
 ////////////////SELF DATA BEGIN///////////
 TCHAR currFile[MAX_PATH]={0};
@@ -514,13 +515,14 @@ void processNavActions() {
 				tmp.changed =  tmpAct.changed;
 				//tmp.FilePath = new TCHAR[MAX_PATH];
 				TCHAR * fileName;
-				auto it = filename_tabel.find(currFile);
-				if(it!=filename_tabel.end()) {
+
+				auto it = filename_table.find(currFile);
+				if(it!=filename_table.end()) {
 					fileName = *it;
 				} else {
 					fileName = new TCHAR[MAX_PATH];
 					lstrcpy(fileName,currFile);
-					filename_tabel.insert(fileName);
+					filename_table.insert(fileName);
 					//::MessageBox(NULL, TEXT("new data!"), TEXT(""), MB_OK);
 				}
 				tmp.FilePath = fileName;
@@ -530,7 +532,7 @@ void processNavActions() {
 		}
 		ActionDataList.pop_front();
 	}
-	if ( ThreadNeedRefresh && _LNhistory.isVisible())
+	if ( ThreadNeedRefresh)
 	{
 		_LNhistory.refreshDlg(1);
 		ThreadNeedRefresh = false;
@@ -812,6 +814,9 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 extern "C" __declspec(dllexport) void setInfo(NppData notpadPlusData)
 {
 	nppData = notpadPlusData;
+
+	_LNhistory.init((HINSTANCE)_LNhistory.getHinst(), nppData._nppHandle);
+
 	commandMenuInit();
 }
 
@@ -929,12 +934,14 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			// 刷新菜单
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuInCurr]._cmdID, MF_BYCOMMAND | (InCurr?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuSkipClosed]._cmdID, MF_BYCOMMAND | (skipClosed?MF_CHECKED:MF_UNCHECKED));
+			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuAlwaysRefresh]._cmdID, MF_BYCOMMAND | (AlwaysRefreshBtns?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuPinMenu]._cmdID, MF_BYCOMMAND | (pinMenu?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuAutoRecord]._cmdID, MF_BYCOMMAND | (bAutoRecord?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuClearOnClose]._cmdID, MF_BYCOMMAND | (AutoClean?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuPause]._cmdID, MF_BYCOMMAND | (bIsPaused?MF_CHECKED:MF_UNCHECKED));
 			::EnableMenuItem(::GetMenu(nppData._nppHandle),
 				funcItem[menuManualRecord]._cmdID,MF_BYCOMMAND|(bAutoRecord?MF_GRAYED:MF_ENABLED ));
+			
 
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuNeedMark]._cmdID, MF_BYCOMMAND | (NeedMark?MF_CHECKED:MF_UNCHECKED));
 		////////////////////////////////

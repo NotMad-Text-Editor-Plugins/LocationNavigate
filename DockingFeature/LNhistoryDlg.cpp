@@ -17,8 +17,51 @@
 
 #include "LNhistoryDlg.h"
 #include "PluginDefinition.h"
-extern void InitBookmark();
-extern vector<MarkData> MarkHistory;
+
+bool bSupressSel;
+
+void LocationNavigateDlg::display(bool toShow){
+	DockingDlgInterface::display(toShow);
+	if (toShow)
+		::SetFocus(::GetDlgItem(_hSelf, IDOK));
+
+	setClosed(false);
+
+	::SendMessage( _hSelf, SELF_REFRESH, 0, 1);
+};
+
+void LocationNavigateDlg::setClosed(bool toClose) {
+	_isClosed = toClose;
+	::CheckMenuItem(::GetMenu(nppData._nppHandle), 
+		funcItem[menuOption]._cmdID, MF_BYCOMMAND | (toClose?MF_UNCHECKED:MF_CHECKED));
+}
+
+void LocationNavigateDlg::refreshDlg(bool updateList) {
+	skFlags=0;
+	hasChanged=0;
+	if (isCreated() && isVisible())
+	{
+		::SendMessage( _hSelf, SELF_REFRESH, AlwaysRefreshBtns, updateList);
+		if(!AlwaysRefreshBtns&&!updateList) {
+			hasChanged=1;
+		}
+	} else {
+		if(AlwaysRefreshBtns) {
+			::SendMessage( _hSelf, SELF_REFRESH, 1, 0);
+		} else {
+			hasChanged=1;
+		}
+	}
+	skFlags=~skFlags;
+
+	int size=LocationList.size();
+	EnableTBButton(menuNext, (skFlags&0x1)&&size&&LocationPos<size-1);
+	EnableTBButton(menuPrevious, (skFlags&0x2)&&size&&LocationPos >0);
+	EnableTBButton(menuChgNext, hasChanged&&(skFlags&0x4)&&size&&LocationPos<size-1);
+	EnableTBButton(menuChgPrevious, hasChanged&&(skFlags&0x8)&&size&&LocationPos > 0);
+};
+
+
 void LocationNavigateDlg::refreshValue()
 {
 	TCHAR strHint[500]={0};	
@@ -26,7 +69,7 @@ void LocationNavigateDlg::refreshValue()
 	::SendMessage( _hUG_E, WM_SETTEXT ,0, (WPARAM)strHint);
 	wsprintf(strHint,TEXT("%d"),MaxList);
 	::SendMessage( _hUG_E2, WM_SETTEXT,0,(WPARAM)strHint);
-//BM_SETCHECK BM_SETCHECK:MF_UNCHECKED
+	//BM_SETCHECK BM_SETCHECK:MF_UNCHECKED
 	::SendMessage( _hAuto, BM_SETCHECK ,(LPARAM)(AutoClean?1:0),0);
 	::SendMessage( _hAlways, BM_SETCHECK ,(LPARAM)(AlwaysRecord?1:0),0);
 	::SendMessage( _hSaveRecord, BM_SETCHECK ,(LPARAM)(SaveRecord?1:0),0);
@@ -76,7 +119,6 @@ bool SetPosByIndex(int delta, bool doit)
 		return true;
 	}
 	PositionSetting = true;
-
 
 	//TCHAR buffer[300]={0};
 	//wsprintf(buffer,TEXT("fN=%s"), LocationList[LocationPos].FilePath);
@@ -169,10 +211,15 @@ void ClearLocationList()
 }
 
 
-ToolBarButtonUnit ListBoxToolBarButtons[] = {
-	{IDM_EX_OPTIONS, -1, -1, -1, IDB_EX_OPTIONS }
+ToolBarButtonUnit ToolBarIconList[] = {
+	{IDM_EX_OPTIONS, -1, -1, -1, IDB_EX_OPTIONS }, 
+	{IDM_EX_UP, -1, -1, -1, IDB_EX_UP }, 
+	{IDM_EX_DOWN, -1, -1, -1, IDB_EX_DOWN }, 
+	{IDM_EX_DELETE, -1, -1, -1, IDB_EX_DELETE }, 
+	{IDM_EX_DELETE_ALL, -1, -1, -1, IDB_EX_DELETE_ALL }, 
 };
-#define ListBoxToolBarSize sizeof(ListBoxToolBarButtons)/sizeof(ToolBarButtonUnit)
+
+#define ListBoxToolBarSize sizeof(ToolBarIconList)/sizeof(ToolBarButtonUnit)
 
 int toolbarHeight=28;
 
@@ -204,7 +251,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 				break;
 				case MAKELONG(IDC_CHECK_MARK,BN_CLICKED):
 					{
-						NeedMark  = (::SendMessage(_hMark, BM_GETCHECK,0,0))==1;
+						NeedMark  = isVisible();//(::SendMessage(_hMark, BM_GETCHECK,0,0))==1;
 						InitBookmark();
 						// 刷新菜单
 						::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuNeedMark]._cmdID, MF_BYCOMMAND | (NeedMark?MF_CHECKED:MF_UNCHECKED));
@@ -283,7 +330,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 				}
 			break;
 			}
-				return FALSE;
+			return DockingDlgInterface::run_dlgProc(message, wParam, lParam);
 		}
 		break;
 		case SELF_REFRESH://WM_TIMER
@@ -291,43 +338,77 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 			// 首先需要检查 结构是否改变过
 			// 读取变量刷新到页面
 			//LockWindowUpdate(_hListBox) ;
+			bool skingNxt=true;
+			bool skingPrev=true;
+			bool skingNxtChng=true;
+			bool skingPrevChng=true;
+			if(!InCurr) {
+				skingNxt=skingPrev=false;
+			}
 			int LocationSize=LocationList.size()-1;
-			if(lParam) {
-				ZeroMemory(strHint, 500);
-				::SendMessage( _hListBox, LB_RESETCONTENT, 0, 0 );
-				bool ShowFNOnly=1;
-				bool ShowLNRT=true;
-				//::MessageBox(NULL,TEXT("111") , TEXT(""), MB_OK);%d,,LocationList[i].bufferID
+			bool do_refresh_dlg = lParam; //parse_seekable_state_only
+			if(wParam||do_refresh_dlg) {
+				if(do_refresh_dlg) {
+					ZeroMemory(strHint, 500);
+					::SendMessage( _hListBox, LB_RESETCONTENT, 0, 0 );
+				}
+				//::MessageBox(NULL,TEXT("111") , TEXT(""), MB_OK);
+				short compared;
 				for ( int i=0;i<=LocationSize;i++ )
 				{
-					if(ShowFNOnly) {
-						int len=lstrlen(LocationList[i].FilePath);
-						TCHAR *strAddr = LocationList[i].FilePath;
-						for(int j=len-1;j>=0;j--) {
-							if(strAddr[j]==TCHAR('\\')) {
-								strAddr+=j+1;
-								break;
+					auto & infoI = LocationList[i];
+					compared=-1;
+					if(InCurr && (skingNxt||skingPrev) && !(compared=lstrcmp(infoI.FilePath, currFile))) {
+						if(skingNxt&&i>LocationPos) {
+							skingNxt=false;
+						}
+						if(skingPrev&&i<LocationPos) {
+							skingPrev=false;
+						}
+					}
+					if(infoI.changed) {
+						hasChanged=1;
+						if((skingNxtChng||skingPrevChng) && (!InCurr||compared==0||compared==-1&&!lstrcmp(infoI.FilePath, currFile))) {
+							if(skingNxtChng&&i>LocationPos) {
+								skingNxtChng=false;
+							}
+							if(skingPrevChng&&i<LocationPos) {
+								skingPrevChng=false;
 							}
 						}
-						wsprintf(strHint,LocationList[i].changed?TEXT("%s * : (%d)"):TEXT("%s : (%d)"), strAddr, LocationList[i].position+1);
-						//wsprintf(strHint,TEXT("%s * : (%d) (%d)"), strAddr, LocationList[i].FilePath, LocationList[i].FilePath);
-					} else {
-						wsprintf(strHint,TEXT("%c,%d,%s"),LocationList[i].changed?'!':'=',LocationList[i].position+1, LocationList[i].FilePath);
 					}
-
-					::SendMessage( _hListBox, LB_ADDSTRING, 0, (LPARAM)strHint );
+					if(do_refresh_dlg) {
+						if(ShowFNOnly) {
+							int len=lstrlen(infoI.FilePath);
+							TCHAR *strAddr = infoI.FilePath;
+							for(int j=len-1;j>=0;j--) {
+								if(strAddr[j]==TCHAR('\\')) {
+									strAddr+=j+1;
+									break;
+								}
+							}
+							wsprintf(strHint,infoI.changed?TEXT("%s * : (%d)"):TEXT("%s : (%d)"), strAddr, infoI.position+1);
+							//wsprintf(strHint,TEXT("%s * : (%d) (%d)"), strAddr, infoI.FilePath, infoI.FilePath);
+						} else {
+							wsprintf(strHint,TEXT("%c,%d,%s"), infoI.changed?'!':'=', infoI.position+1, infoI.FilePath);
+						}
+						::SendMessage( _hListBox, LB_ADDSTRING, 0, (LPARAM)strHint );
+					}
 				}
+				skFlags = skingNxt|skingPrev<<1|skingNxtChng<<2|skingPrevChng<<3;
 			} else {
 				::SendMessage( _hListBox, LB_SETSEL, 0, -1);
 			}
 			// 设置当前点
 			//::SendMessage( _hListBox, LB_SETCURSEL, LocationPos, 0);
-			::SendMessage( _hListBox, LB_SETSEL, 1, LocationPos);
+			if(!bSupressSel) {
+				::SendMessage( _hListBox, LB_SETSEL, 1, LocationPos);
+			}
 			//refreshValue();
 		}
 		break;
 		case WM_INITDIALOG:
-			{
+		{
 			_hListBox =	GetDlgItem(_hSelf, IDC_LOC_LIST);
 
 			_hUG_T =	GetDlgItem(_hSelf, ID_UGO_STATIC);
@@ -372,7 +453,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 			ListBoxPanel.init( _hInst, _hSelf );
 			//ListBoxWrap.init(_hInst, ListBoxPanel.getHSelf());
 			//ListBoxPanel.SetChildWindow( &ListBoxWrap );
-			toolBar.init( _hInst, _hSelf, TB_STANDARD, ListBoxToolBarButtons, ListBoxToolBarSize );
+			toolBar.init( _hInst, _hSelf, TB_STANDARD, ToolBarIconList, ListBoxToolBarSize );
 			//toolBar.init( _hInst, ListBoxPanel.getHSelf(), TB_STANDARD, ListBoxToolBarButtons, ListBoxToolBarSize );
 			toolBar.display();
 			ListBoxPanel.SetToolbar( &toolBar );
@@ -389,48 +470,46 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 			refreshValue();
 			// 
 			//SetTimer(_hSelf,1,500,NULL);
-			}
-			break;
+		} break;
 		case WM_SIZE:
 		case WM_MOVE:
-			{
-				RECT rc;
-				getClientRect(rc);
+		{
+			RECT rc;
+			getClientRect(rc);
 
 
-				//rc.top+=100;
-				//rc.bottom-=100;
+			//rc.top+=100;
+			//rc.bottom-=100;
 
-				::MoveWindow(_hListBox,rc.left, rc.top+toolbarHeight, rc.right, rc.bottom-70-toolbarHeight,TRUE);
+			::MoveWindow(_hListBox,rc.left, rc.top+toolbarHeight, rc.right, rc.bottom-70-toolbarHeight,TRUE);
 
-				::MoveWindow(_hUG_T, rc.left+60, rc.bottom-62, 70, 18, TRUE);
-				::MoveWindow(_hUG_E, rc.left+135, rc.bottom-65, 40, 18, TRUE);
+			::MoveWindow(_hUG_T, rc.left+60, rc.bottom-62, 70, 18, TRUE);
+			::MoveWindow(_hUG_E, rc.left+135, rc.bottom-65, 40, 18, TRUE);
 
-				::MoveWindow(_hUG_T2, rc.left+60, rc.bottom-42, 70, 18, TRUE);
-				::MoveWindow(_hUG_E2, rc.left+135, rc.bottom-45, 40, 18, TRUE);
+			::MoveWindow(_hUG_T2, rc.left+60, rc.bottom-42, 70, 18, TRUE);
+			::MoveWindow(_hUG_E2, rc.left+135, rc.bottom-45, 40, 18, TRUE);
 
-				::MoveWindow(_hInCurr, rc.left+10, rc.bottom-65, 40,18, TRUE);
-				::MoveWindow(_hMark, rc.left+10, rc.bottom-45, 40,18, TRUE);
+			::MoveWindow(_hInCurr, rc.left+10, rc.bottom-65, 40,18, TRUE);
+			::MoveWindow(_hMark, rc.left+10, rc.bottom-45, 40,18, TRUE);
 
 				
-				::MoveWindow(_hABOUT, rc.left+185, rc.bottom-65, 500,36, TRUE);
-				::MoveWindow(_hClear, rc.left+180, rc.bottom-38, 40,14, TRUE);
+			::MoveWindow(_hABOUT, rc.left+185, rc.bottom-65, 500,36, TRUE);
+			::MoveWindow(_hClear, rc.left+180, rc.bottom-38, 40,14, TRUE);
 
-				::MoveWindow(_hColor,  rc.left+225, rc.bottom-38, 60,16, TRUE);
-				::MoveWindow(_hSaveColor,  rc.left+285, rc.bottom-38, 60,16, TRUE);
-				::MoveWindow( _hAuto ,  rc.left+350, rc.bottom-38, 130,16, TRUE);
+			::MoveWindow(_hColor,  rc.left+225, rc.bottom-38, 60,16, TRUE);
+			::MoveWindow(_hSaveColor,  rc.left+285, rc.bottom-38, 60,16, TRUE);
+			::MoveWindow( _hAuto ,  rc.left+350, rc.bottom-38, 130,16, TRUE);
 
-				::MoveWindow(_hUG_OK, rc.left+10, rc.bottom-22, 40,18, TRUE);
-				::MoveWindow(_hSaveRecord, rc.left+60, rc.bottom-22, 150,18, TRUE);
-				::MoveWindow( _hBookmark,  rc.left+220, rc.bottom-22, 120,16, TRUE);
-				::MoveWindow(_hAlways,  rc.left+350, rc.bottom-22, 90,16, TRUE);
+			::MoveWindow(_hUG_OK, rc.left+10, rc.bottom-22, 40,18, TRUE);
+			::MoveWindow(_hSaveRecord, rc.left+60, rc.bottom-22, 150,18, TRUE);
+			::MoveWindow( _hBookmark,  rc.left+220, rc.bottom-22, 120,16, TRUE);
+			::MoveWindow(_hAlways,  rc.left+350, rc.bottom-22, 90,16, TRUE);
 				
-				rc.bottom=toolbarHeight;
-				ListBoxPanel.reSizeTo(rc);
+			rc.bottom=toolbarHeight;
+			ListBoxPanel.reSizeTo(rc);
 
-				redraw();
-			}
-		break;
+			redraw();
+		} break;
 		case WM_NOTIFY: 
 		{
 			LPNMHDR	pnmh	= (LPNMHDR)lParam;
@@ -440,6 +519,7 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 				{
 				case DMN_CLOSE:
 					{
+						setClosed(1);
 						break;
 					}
 				default:
@@ -448,14 +528,16 @@ INT_PTR CALLBACK LocationNavigateDlg::run_dlgProc(UINT message, WPARAM wParam, L
 			}
 			break;
 		}
-		default :
-			return DockingDlgInterface::run_dlgProc(message, wParam, lParam);
 	}
-	return TRUE;
+	return DockingDlgInterface::run_dlgProc(message, wParam, lParam);
 }
 
 bool getMenuItemNeedsKeep(int mid) {
 	switch(mid) {
+		case menuNext:
+		case menuPrevious:
+		case menuChgNext:
+		case menuChgPrevious:
 		case menuAutoRecord:
 		case menuOption:
 		case menuInCurr:
@@ -474,7 +556,11 @@ bool getMenuItemChecked(int mid) {
 		case menuAutoRecord:
 			return bAutoRecord;
 		case menuOption:
-			return PositionSetting;
+		{
+			UINT state = ::GetMenuState( ::GetMenu( nppData._nppHandle ),
+				funcItem[menuOption]._cmdID, MF_BYCOMMAND );
+			return state & MF_CHECKED;
+		}
 		case menuInCurr:
 			return InCurr;
 		case menuNeedMark:
@@ -563,33 +649,37 @@ void TrackPopup(HWND _hSelf) {
 }
 
 void LocationNavigateDlg::OnToolBarCommand( UINT Cmd )
-{
+{ 
 	switch ( Cmd ) {
 		case IDM_EX_OPTIONS:
 			TrackPopup(_hSelf);
 		return;
+		case IDM_EX_UP:
+			PreviousLocation();
+		return;
+		case IDM_EX_DOWN:
+			NextLocation();
+		return;
+		case IDM_EX_DELETE: {
+			int sellen = ::SendMessage(_hListBox, LB_GETSELCOUNT , 0, 1);
+			if(sellen) {
+				int* data = new int[sellen];
+				::SendMessage(_hListBox, LB_GETSELITEMS, sellen, (LPARAM)data);
+				for(sellen--;sellen>=0;sellen--) {
+					LocationList.erase(LocationList.begin()+data[sellen]);
+				}
+				int sel=data[0];
+				bSupressSel=1;
+				::SendMessage(_hSelf, SELF_REFRESH, 1, 1);
+				bSupressSel=0;
+				if(sel>=LocationList.size()) {
+					sel=LocationList.size()-1;
+				}
+				::SendMessage( _hListBox, LB_SETSEL, 1, sel);
+			}
+		} return;
+		case IDM_EX_DELETE_ALL:
+			ClearAllRecords();
+		return;
 	}
 }
-
-
-
-deque<LocationInfo>LocationList;
-deque<LocationInfo>LocationSave;
-long LocationPos=0;
-bool PositionSetting = false;
-int MaxOffset=100;
-int MaxList = 50;
-bool AutoClean = false;
-HWND curScintilla=0;
-bool AlwaysRecord=false;
-bool SaveRecord = false;
-bool InCurr = false;
-bool skipClosed = false;
-bool pinMenu = false;
-bool bIsPaused = false;
-bool bAutoRecord = true;
-bool NeedMark = false;
-MarkType ByBookMark = MarkHightLight;
-long MarkColor = DefaultColor;
-long SaveColor = DefaultSaveColor;
-//CRITICAL_SECTION criCounter;

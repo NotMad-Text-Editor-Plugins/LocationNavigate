@@ -45,6 +45,7 @@ enum menuList
 	menuOption,
 	menuSeparator0,
 
+	menuAlwaysRefresh,
 	menuAutoRecord,
 	menuManualRecord,
 	menuClearRecords,
@@ -100,30 +101,24 @@ void commandMenuInit();
 void commandMenuCleanUp();
 
 //
-// Function which sets your command 
-//
-bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey *sk = NULL, bool check0nInit = false);
-
-
-//
 // Your plugin command functions
 //
 void PreviousLocation();
 void NextLocation();
-void PreviousChangedLocation();
-void NextChangedLocation();
-
-void LocationNavigateHistoryDlg();
-void AutoRecord();
-void SkipClosed();
-void FlipAutoClean();
-void PauseRecording();
-void ManualRecord();
+//void PreviousChangedLocation();
+//void NextChangedLocation();
+//
+//void LocationNavigateHistoryDlg();
+//void AutoRecord();
+//void SkipClosed();
+//void FlipAutoClean();
+//void PauseRecording();
+//void ManualRecord();
 void ClearAllRecords();
-void NavigateInCurr();
-void MarkChange();
-void ShowAbout();
-void PinMenu();
+//void NavigateInCurr();
+//void MarkChange();
+//void ShowAbout();
+//void PinMenu();
 
 extern toolbarIcons		g_TBPrevious;
 extern toolbarIcons		g_TBNext;
