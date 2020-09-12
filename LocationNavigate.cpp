@@ -841,46 +841,43 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 {
 	int ModifyType = notifyCode->modificationType;
 	int code = notifyCode->nmhdr.code;
-	if ((notifyCode->nmhdr.hwndFrom == nppData._nppHandle) && 
-		(code == NPPN_TBMODIFICATION))
-	{
-		/* add toolbar icon */
-		auto HRO = (HINSTANCE)g_hModule;
-
-		long filecount2 = ::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, (LPARAM)PRIMARY_VIEW);
-
-		long version = ::SendMessage(nppData._nppHandle, NPPM_GETNOTMADVERSION, 0, 0);
-
-		bool legacy = version<0x666;
-
-		g_TBPreviousChg.HRO = HRO;
-		if(legacy)g_TBPreviousChg.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP3), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
-		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuChgPrevious]._cmdID, (LPARAM)&g_TBPreviousChg);
-
-		g_TBPrevious.HRO = HRO;
-		if(legacy)g_TBPrevious.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP1), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
-		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuPrevious]._cmdID, (LPARAM)&g_TBPrevious);
-
-		g_TBNext.HRO = HRO;
-		if(legacy)g_TBNext.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP2), IMAGE_BITMAP, 0, 0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
-		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuNext]._cmdID, (LPARAM)&g_TBNext);
-
-		g_TBNextChg.HRO = HRO;
-		if(legacy)g_TBNextChg.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP4), IMAGE_BITMAP, 0, 0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
-		::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuChgNext]._cmdID, (LPARAM)&g_TBNextChg);
-
-		/////初始化变量/////////////////////////////////////////////////////////////////////
-		for (int i=0;i<menuCount;i++)
-		{
-			menuState[i] = true; // 默认都是有效的
-			IconID[i] = -1;
-		}
-	}
 
 	switch (code) 
 	{
 		case NPPN_TBMODIFICATION:
-			//::MessageBox(NULL, TEXT("111"), TEXT(""), MB_OK);
+			if(notifyCode->nmhdr.hwndFrom == nppData._nppHandle) {
+				/* add toolbar icon */
+				auto HRO = (HINSTANCE)g_hModule;
+
+				long filecount2 = ::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, (LPARAM)PRIMARY_VIEW);
+
+				long version = ::SendMessage(nppData._nppHandle, NPPM_GETNOTMADVERSION, 0, 0);
+
+				bool legacy = version<0x666;
+
+				g_TBPreviousChg.HRO = HRO;
+				if(legacy)g_TBPreviousChg.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP3), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
+				::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuChgPrevious]._cmdID, (LPARAM)&g_TBPreviousChg);
+
+				g_TBPrevious.HRO = HRO;
+				if(legacy)g_TBPrevious.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP1), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
+				::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuPrevious]._cmdID, (LPARAM)&g_TBPrevious);
+
+				g_TBNext.HRO = HRO;
+				if(legacy)g_TBNext.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP2), IMAGE_BITMAP, 0, 0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
+				::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuNext]._cmdID, (LPARAM)&g_TBNext);
+
+				g_TBNextChg.HRO = HRO;
+				if(legacy)g_TBNextChg.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP4), IMAGE_BITMAP, 0, 0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
+				::SendMessage(nppData._nppHandle, NPPM_ADDTOOLBARICON, (WPARAM)funcItem[menuChgNext]._cmdID, (LPARAM)&g_TBNextChg);
+
+				/////初始化变量/////////////////////////////////////////////////////////////////////
+				for (int i=0;i<menuCount;i++)
+				{
+					menuState[i] = true; // 默认都是有效的
+					IconID[i] = -1;
+				}
+			}
 		break;
 		case NPPN_SHUTDOWN:
 		{

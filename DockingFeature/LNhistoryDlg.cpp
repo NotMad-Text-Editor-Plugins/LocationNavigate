@@ -602,26 +602,11 @@ void simulToolbarMenu(HMENU pluginMenu, RECT *rc, HWND _hSelf, bool recreate){
 	}
 }
 
-TCHAR *moduleFileName;
 extern HANDLE				g_hModule;
 
 void TrackPopup(HWND _hSelf) {
-	if(!moduleFileName) {
-		moduleFileName = new TCHAR[MAX_PATH];
-		int len = GetModuleFileName((HMODULE)g_hModule, moduleFileName, MAX_PATH);
-		int offset=0;
-		if(len>=0) {
-			int i=len-1;
-			for(;i>=0;i--) {
-				if(moduleFileName[i]=='\\') {
-					moduleFileName+=i+1;
-					break;
-				}
-			}
-		}
-	}
 
-	HMENU pluginMenu = (HMENU)::SendMessage(nppData._nppHandle, NPPM_GETPLUGINMENU, 0 , (LPARAM)moduleFileName);
+	HMENU pluginMenu = (HMENU)::SendMessage(nppData._nppHandle, NPPM_GETPLUGINMENU, 0 , (LPARAM)g_hModule);
 
 	bool recreate=false;
 

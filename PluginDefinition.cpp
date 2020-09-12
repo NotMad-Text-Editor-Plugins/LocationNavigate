@@ -327,10 +327,10 @@ void ManualRecord()
 }
 void ClearAllRecords()
 {
-	if(IDOK!=::MessageBox(_LNhistory.getHSelf(), TEXT("Clear All Navigation History?"), TEXT(""), MB_OKCANCEL | MB_TASKMODAL))
-		return;
-	ClearLocationList();
-	_LNhistory.refreshDlg(1);
+	if(LocationList.size() && IDOK==::MessageBox(_LNhistory.getHSelf(), TEXT("Clear All Navigation History?"), TEXT(""), MB_OKCANCEL | MB_TASKMODAL)) {
+		ClearLocationList();
+		_LNhistory.refreshDlg(1);
+	}
 }
 void SkipClosed()
 {
