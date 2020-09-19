@@ -831,6 +831,8 @@ extern "C" __declspec(dllexport) FuncItem * getFuncsArray(int *nbF)
 	return funcItem;
 }
 
+bool legacy;
+
 typedef const TBBUTTON *LPCTBBUTTON;
 #define TB_GETBUTTON            (WM_USER + 23)
 #define TB_BUTTONCOUNT          (WM_USER + 24)
@@ -853,7 +855,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 
 				long version = ::SendMessage(nppData._nppHandle, NPPM_GETNOTMADVERSION, 0, 0);
 
-				bool legacy = version<0x666;
+				legacy = version<0x666;
 
 				g_TBPreviousChg.HRO = HRO;
 				if(legacy)g_TBPreviousChg.hToolbarBmp = (HBITMAP)::LoadImage(HRO, MAKEINTRESOURCE(IDB_BITMAP3), IMAGE_BITMAP, 0,0, (LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS));
@@ -919,14 +921,10 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 					break;
 				}
 			}
-			// 先将按钮全部灰掉
-			for (int i=0;i<menuCount;i++)
+			// 先将按钮全部灰掉 默认都无效的
+			for (int i=menuPrevious;i<=menuChgNext;i++)
 			{
-				if ( IconID[i] !=-1)
-				{
-					::SendMessage(hToolbar,TB_ENABLEBUTTON,(WPARAM)IconID[i],MAKELONG(FALSE, 0));
-					menuState[i] = false; // 默认都无效的
-				}
+				EnableTBButton((menuList)i, false, true);
 			}
 			// 刷新菜单
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuInCurr]._cmdID, MF_BYCOMMAND | (InCurr?MF_CHECKED:MF_UNCHECKED));
@@ -936,8 +934,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuAutoRecord]._cmdID, MF_BYCOMMAND | (bAutoRecord?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuClearOnClose]._cmdID, MF_BYCOMMAND | (AutoClean?MF_CHECKED:MF_UNCHECKED));
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuPause]._cmdID, MF_BYCOMMAND | (bIsPaused?MF_CHECKED:MF_UNCHECKED));
-			::EnableMenuItem(::GetMenu(nppData._nppHandle),
-				funcItem[menuManualRecord]._cmdID,MF_BYCOMMAND|(bAutoRecord?MF_GRAYED:MF_ENABLED ));
+			::EnableMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuManualRecord]._cmdID,MF_BYCOMMAND|(bAutoRecord?MF_GRAYED:MF_ENABLED ));
 			
 
 			::CheckMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuNeedMark]._cmdID, MF_BYCOMMAND | (NeedMark?MF_CHECKED:MF_UNCHECKED));

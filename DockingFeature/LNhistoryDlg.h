@@ -98,6 +98,8 @@ extern MarkType ByBookMark;
 extern long MarkColor;
 extern long SaveColor;
 
+extern bool legacy ;
+
 extern HWND curScintilla;
 //extern CRITICAL_SECTION criCounter;
 extern FuncItem funcItem[nbFunc];
@@ -110,7 +112,7 @@ extern void AddList(bool flag=false);
 extern void ClearLocationList();
 
 bool SetPosByIndex(int delta, bool doit=true);
-void EnableTBButton(menuList flagIndex,bool state);
+void EnableTBButton(menuList flagIndex, bool state, bool force=false);
 #define TB_ENABLEBUTTON         (WM_USER + 1)
 class LocationNavigateDlg : public DockingDlgInterface
 {

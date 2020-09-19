@@ -7,9 +7,9 @@
     <ClCompile Include="PluginDefinition.cpp" />
     <ClCompile Include="..\..\PowerEditor\src\WinControls\StaticDialog\StaticDialog.cpp" />
     <ClCompile Include="..\CPPCommon\common_patch.cpp" />
-    <ClCompile Include="..\CPPCommon\ToolBar.cpp" />
     <ClCompile Include="..\CPPCommon\ToolbarPanel.cpp" />
     <ClCompile Include="..\..\PowerEditor\src\WinControls\ImageListSet\ImageListSet.cpp" />
+    <ClCompile Include="..\..\PowerEditor\src\WinControls\ToolBar\ToolBar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DockingFeature\LNhistoryDlg.h" />

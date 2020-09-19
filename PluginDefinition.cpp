@@ -317,8 +317,7 @@ void AutoRecord()
 {
 	// 刷新菜单
 	FlipCheckMenu(&bAutoRecord, menuAutoRecord);
-	::EnableMenuItem(::GetMenu(nppData._nppHandle),
-		funcItem[menuManualRecord]._cmdID,MF_BYCOMMAND|(bAutoRecord?MF_GRAYED:MF_ENABLED ));
+	::EnableMenuItem(::GetMenu(nppData._nppHandle), funcItem[menuManualRecord]._cmdID,MF_BYCOMMAND|(bAutoRecord?MF_GRAYED:MF_ENABLED ));
 }
 void ManualRecord()
 {
@@ -398,15 +397,13 @@ void ToggleHistoryPanel()
 		::SendMessage( nppData._nppHandle, NPPM_DMMREGASDCKDLG, 0, ( LPARAM )&data );
 
 		_LNhistory.display();
-		::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK, 
-			funcItem[menuOption]._cmdID, true );
+		::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK, funcItem[menuOption]._cmdID, true );
 	} else {
 		bool NeedShowDlg = !_LNhistory.isVisible();
 
 		_LNhistory.display(NeedShowDlg);
 
-		::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK,
-			funcItem[menuOption]._cmdID, NeedShowDlg );
+		::SendMessage( nppData._nppHandle, NPPM_SETMENUITEMCHECK, funcItem[menuOption]._cmdID, NeedShowDlg );
 	}
 }
 

@@ -80,28 +80,32 @@ void LocationNavigateDlg::refreshValue()
 	//::SendMessage( _hBookmark, BM_SETCHECK ,(LPARAM)(ByBookMark?1:0),0);
 	::SendMessage(_hBookmark, CB_SETCURSEL, ByBookMark, 0);
 }
-void EnableTBButton(menuList flagIndex,bool state)
+
+void EnableTBButton(menuList flagIndex, bool state, bool force)
 {
 	//::MessageBox(NULL, TEXT("111"), TEXT(""), MB_OK);
-	if ( menuState[flagIndex] !=state )
+	if (force||menuState[flagIndex]!=state)
 	{
 		//TCHAR buffer[100]={0};
 		//wsprintf(buffer,TEXT("position=%d,%d"),flagIndex,state);
 		//::MessageBox(NULL, buffer, TEXT(""), MB_OK);
 		// 状态不符合，需要改变
-		::EnableMenuItem(::GetMenu(nppData._nppHandle),
-			funcItem[flagIndex]._cmdID,MF_BYCOMMAND|(state?MF_ENABLED:MF_GRAYED));
-		if ( IconID[flagIndex] !=-1)
-		{
-			if(!IsWindow(hToolbar)) {
-				HWND hReBar;
-				hReBar = FindWindowEx( nppData._nppHandle, hReBar, TEXT( "ReBarWindow32" ), NULL );
-				hToolbar = FindWindowEx( hReBar, NULL, TEXT( "ToolbarWindow32" ), NULL );
+
+		if(legacy) {
+			::EnableMenuItem(::GetMenu(nppData._nppHandle), funcItem[flagIndex]._cmdID,MF_BYCOMMAND|(state?MF_ENABLED:MF_GRAYED));
+			if ( IconID[flagIndex] !=-1)
+			{
+				if(!IsWindow(hToolbar)) {
+					HWND hReBar;
+					hReBar = FindWindowEx( nppData._nppHandle, hReBar, TEXT( "ReBarWindow32" ), NULL );
+					hToolbar = FindWindowEx( hReBar, NULL, TEXT( "ToolbarWindow32" ), NULL );
+				}
+				::SendMessage(hToolbar,TB_ENABLEBUTTON,(WPARAM)IconID[flagIndex],MAKELONG((state?TRUE:FALSE), 0));
 			}
-			::SendMessage(hToolbar,TB_ENABLEBUTTON,(WPARAM)IconID[flagIndex],MAKELONG((state?TRUE:FALSE), 0));
-			menuState[flagIndex] = state;
+		} else {
+			::SendMessage(nppData._nppHandle,NPPM_ENABLEMENUITEM,(WPARAM)IconID[flagIndex],MAKELONG((state?TRUE:FALSE), 0));
 		}
-		
+		menuState[flagIndex] = state;
 	}
 }
 bool SetPosByIndex(int delta, bool doit)
