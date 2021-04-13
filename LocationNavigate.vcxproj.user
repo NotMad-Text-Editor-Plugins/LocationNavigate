@@ -3,4 +3,9 @@
   <PropertyGroup>
     <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|x64'">
+    <LocalDebuggerCommand>$(ProjectDir)..\..\PowerEditor\bin64\Textrument.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommandArguments> "D:\Code\FigureOut\Textrument\plugins\MarkdownText\Tests\test.session" -multiInst -nosession </LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

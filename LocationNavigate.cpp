@@ -834,9 +834,6 @@ extern "C" __declspec(dllexport) FuncItem * getFuncsArray(int *nbF)
 bool legacy;
 
 typedef const TBBUTTON *LPCTBBUTTON;
-#define TB_GETBUTTON            (WM_USER + 23)
-#define TB_BUTTONCOUNT          (WM_USER + 24)
-#define TB_COMMANDTOINDEX       (WM_USER + 25)
 static long preModifyPos = -1;//之前在的位置
 static long preModifyLineAdd = -1;//之前添加的行数
 extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
